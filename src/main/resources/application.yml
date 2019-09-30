@@ -10,6 +10,11 @@ keycloak:
   public-client: false
   realm: archilab
   resource: search-service
+import:
+  delay:
+    minutes: 1
+    initial:
+      seconds: 1
 server:
   port: 9004
   use-forward-headers: true
