@@ -4,18 +4,12 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import io.archilab.prox.searchservice.core.AbstractEntity;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -29,11 +23,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project extends AbstractEntity {
+public class Project {
 
   @Setter
   @JsonUnwrapped
   private ProjectName name;
+
+  @Id
+  @Setter
+  @JsonUnwrapped
+  private URI uri;
 
   @Setter
   @JsonUnwrapped
@@ -69,11 +68,11 @@ public class Project extends AbstractEntity {
   private java.util.Date modified;
 
 
-  public Project(UUID id , ProjectName name, ProjectShortDescription shortDescription,
+  public Project(URI uri, ProjectName name, ProjectShortDescription shortDescription,
       ProjectDescription description, ProjectStatus status, ProjectRequirement requirement,
          @NotNull SupervisorName supervisorName )  {
-	  super(id);
-	  
+
+    this.uri = uri;
     this.requirement = requirement;
     this.name = name;
     this.shortDescription = shortDescription;
