@@ -6,7 +6,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@RepositoryRestResource(exported = false)
-public interface ProjectRepository extends PagingAndSortingRepository<Project, UUID> {
+@RepositoryRestResource(exported = true)
+public interface ProjectRepository extends ProjectRepositoryCustom, PagingAndSortingRepository<Project, UUID> {
 
 }

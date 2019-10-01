@@ -2,7 +2,11 @@ package io.archilab.prox.searchservice.controller;
 
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
@@ -23,12 +27,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.archilab.prox.searchservice.project.Project;
+import io.archilab.prox.searchservice.services.SearchResultService;
+
 
 
 @RestController
 @RequestMapping("search")
 public class SearchController implements ResourceProcessor<RepositoryLinksResource> {
 
+  @Autowired
+  SearchResultService searchResultService;
+  
   @GetMapping(value = "/")
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
@@ -41,9 +51,16 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
         .withRel("searchAdvanced");
     resource.add(searchAdvanced);
     
-//    Link pages = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).pages(null,null))
-//        .withRel("pages");
-//    resource.add(pages);
+    Link pages;
+    try {
+      pages = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).pages(null,null))
+          .withRel("pages");
+      resource.add(pages);
+    } catch (Exception e) {
+      
+      e.printStackTrace();
+    }
+    
     
     
     Link self = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks()).withSelfRel();
@@ -62,13 +79,36 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   
   
 //  @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
-//  public ResponseEntity < PagedResources < String >> pages(Pageable pageable, PagedResourcesAssembler assembler) {
+//  public ResponseEntity < PagedResources < String >> pages2(Pageable pageable, PagedResourcesAssembler assembler) {
 //   Page < String > products = Page.empty( pageable);
 //   PagedResources < String > pr = assembler.toResource(products, ControllerLinkBuilder.linkTo(SearchController.class).slash("/products").withSelfRel());
 //   HttpHeaders responseHeaders = new HttpHeaders();
 //   responseHeaders.add("Link", createLinkHeader(pr));
 //   return new ResponseEntity < > (assembler.toResource(products, ControllerLinkBuilder.linkTo(SearchController.class).slash("/products").withSelfRel()), responseHeaders, HttpStatus.OK);
 //  }
+//  
+  // ,params = { "pageable", "searchText" }  @RequestParam("page") int page, @RequestParam("size") int size, 
+  
+  @GetMapping(value = "/products" , produces = MediaType.APPLICATION_JSON_VALUE)
+  public Page<Project> pages( @NotNull final Pageable pageable,
+      @RequestParam("searchText") String searchText) throws Exception {
+
+    List<Project> resultPage = searchResultService.findPaginated(pageable,searchText);
+//        if (pageable.getPageNumber() > resultPage.getTotalPages()) {
+//            throw new Exception("Page does not exist");
+//        }
+    
+    int start = (int) pageable.getOffset();
+
+    int end = (int) ((start + pageable.getPageSize()) > resultPage.size() ? resultPage.size()
+      : (start + pageable.getPageSize()));
+
+ 
+    Page<Project> page 
+      = new PageImpl<Project>(resultPage.subList(start, end), pageable, resultPage.size());
+
+        return page;
+    }
 //  
 //  private String createLinkHeader(PagedResources < String > pr) {
 //    final StringBuilder linkHeader = new StringBuilder();
