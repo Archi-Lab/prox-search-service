@@ -1,6 +1,7 @@
 package io.archilab.prox.searchservice.controller;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +29,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,7 +58,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     
     Link searchBasic;
     try {
-      searchBasic = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchBasic(null,null,null))
+      searchBasic = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchBasic(Pageable.unpaged(),null,null))
           .withRel("searchBasic");
       resource.add(searchBasic);
     } catch (Exception e1) {
@@ -107,41 +111,88 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     
     ObjectNode onode_page = objectMapper.createObjectNode();
     
-
+    
     List<ProjectSearchData> resultPage = searchResultService.findPaginated(pageable,searchText);
     
     for (ProjectSearchData project : resultPage) {
       fillObjectNode(onode_projects_list.addObject(),project);
     }
     
-    onode_links_first.put("href",httpServletRequest.getRequestURI());
+    
+    
+    long totalElements = searchResultService.getTotalElements();  
+    long lastPage = ((totalElements - 1l) / (long)pageable.getPageSize()) + 1l;
+    onode_page.put("size",pageable.getPageSize());
+    onode_page.put("totalElements",totalElements);
+    onode_page.put("totalPages", lastPage);
+    onode_page.put("number",pageable.getPageNumber());
+
+
+
+    
+    StringBuilder requestURL = new StringBuilder(httpServletRequest.getRequestURL().toString());
+    String queryString = httpServletRequest.getQueryString();
+
+    if (queryString != null) 
+    {
+      requestURL.append('?').append(queryString).toString();
+    } 
+    UriComponents ucb=null;
+    URI uri = null;
+    ucb =
+        ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+            .replaceQueryParam("page", "0")
+            .build();
+    uri = ucb.toUri();     
+    onode_links_first.put("href",uri.toString());
     onode_links.set("first",onode_links_first);
 
-    onode_links_last.put("href",httpServletRequest.getRequestURI());
+    ucb =
+        ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+            .replaceQueryParam("page", String.valueOf(lastPage))
+            .build();
+    uri = ucb.toUri();  
+    onode_links_last.put("href",uri.toString());
     onode_links.set("last",onode_links_last);
     
-    onode_links_prev.put("href",httpServletRequest.getRequestURI());
-    onode_links.set("prev",onode_links_prev);
     
-    onode_links_next.put("href",httpServletRequest.getRequestURI());
-    onode_links.set("next",onode_links_next);
+    if(0!=pageable.getPageNumber())
+    {
+      ucb =
+          ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+              .replaceQueryParam("page", String.valueOf((pageable.getPageNumber()+1)))
+              .build();
+      uri = ucb.toUri();  
+      onode_links_prev.put("href",uri.toString());
+      onode_links.set("prev",onode_links_prev);
+    }
+
     
-    onode_links_self.put("href",httpServletRequest.getRequestURI());
+    if(lastPage!=pageable.getPageNumber())
+    {
+      ucb =
+          ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+              .replaceQueryParam("page",  String.valueOf((pageable.getPageNumber()+1)))
+              .build();
+      uri = ucb.toUri();  
+      onode_links_next.put("href",uri.toString());
+      onode_links.set("next",onode_links_next);
+    }
+
+    
+    ucb =
+        ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+            .build();
+    uri = ucb.toUri();   
+    onode_links_self.put("href",uri.toString());
     onode_links.set("self",onode_links_self);
    
 
- 
     onode_projects.set("projects", onode_projects_list);
-    
-    onode_page.put("size",pageable.getPageSize());
-    onode_page.put("totalElements",0);
-    onode_page.put("totalPages",0);
-    onode_page.put("number",pageable.getPageNumber());
-
+ 
     onode_root.set("_embedded", onode_projects);
     onode_root.set("_links", onode_links);
     onode_root.set("page", onode_page);
-
 
     return onode_root.toString();
 

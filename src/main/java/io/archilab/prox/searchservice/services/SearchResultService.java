@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import io.archilab.prox.searchservice.project.Project;
 import io.archilab.prox.searchservice.project.ProjectDescription;
 import io.archilab.prox.searchservice.project.ProjectName;
@@ -43,7 +45,7 @@ public class SearchResultService {
     {
       for(int i=0;i<800;i++)
       {
-        Project testpp = new Project(UUID.randomUUID(),new URI("3r4t5") , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
+        Project testpp = new Project(UUID.randomUUID(),new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444"+i) , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
             new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
             new SupervisorName("fffffffffffff") );
         projectRepository.save(testpp);
@@ -54,6 +56,13 @@ public class SearchResultService {
   
     return projectRepository.findAllSearchedProjects(pageable,searchText);
 
+  }
+
+
+  public Long getTotalElements() 
+  {
+    log.info(""+projectRepository.count());
+    return projectRepository.count();
   }
 
 }
