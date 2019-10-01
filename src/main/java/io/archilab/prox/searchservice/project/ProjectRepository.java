@@ -1,5 +1,6 @@
 package io.archilab.prox.searchservice.project;
 
+import java.net.URI;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.repository.PagingAndSortingRepository;

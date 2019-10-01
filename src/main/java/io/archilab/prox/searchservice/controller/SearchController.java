@@ -1,7 +1,9 @@
 package io.archilab.prox.searchservice.controller;
 
+import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.archilab.prox.searchservice.project.Project;
+import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.services.SearchResultService;
 
 
@@ -43,24 +52,30 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
     
-    Link searchBasic = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchBasic(null))
-        .withRel("searchBasic");
-    resource.add(searchBasic);
+    Link searchBasic;
+    try {
+      searchBasic = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchBasic(null,null,null))
+          .withRel("searchBasic");
+      resource.add(searchBasic);
+    } catch (Exception e1) {
+      e1.printStackTrace();
+    }
+    
 
     Link searchAdvanced = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchAdvanced(null))
         .withRel("searchAdvanced");
     resource.add(searchAdvanced);
     
-    Link pages;
-    try {
-      pages = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).pages(null,null))
-          .withRel("pages");
-      resource.add(pages);
-    } catch (Exception e) {
-      
-      e.printStackTrace();
-    }
-    
+//    Link pages;
+//    try {
+//      pages = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).pages(null,null))
+//          .withRel("pages");
+//      resource.add(pages);
+//    } catch (Exception e) {
+//      
+//      e.printStackTrace();
+//    }
+//    
     
     
     Link self = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks()).withSelfRel();
@@ -69,13 +84,69 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     return resource;
   }
   
-  @GetMapping(value = "/searchBasic")
-  public ResponseEntity<List<String>> searchBasic(@RequestParam(value = "page", required = false) Integer offset) {
-    ResponseEntity<List<String>> response = new ResponseEntity<List<String>>(HttpStatus.ACCEPTED);
-    // response.getBody().add("hallo121");
-
-    return response;
+  private void fillObjectNode(ObjectNode onode, ProjectSearchData projectSearchData)
+  {
+    onode.put("uri", projectSearchData.getUri() );
   }
+  
+  @GetMapping(value = "/searchBasic" , produces=MediaType.APPLICATION_JSON_VALUE)
+  public String searchBasic(@NotNull final Pageable pageable,  @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest) throws Exception {
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    
+    ObjectNode onode_root = objectMapper.createObjectNode();
+    ObjectNode onode_projects = objectMapper.createObjectNode();
+    ArrayNode onode_projects_list = objectMapper.createArrayNode();
+    ObjectNode onode_links = objectMapper.createObjectNode();
+    
+    ObjectNode onode_links_first = objectMapper.createObjectNode();
+    ObjectNode onode_links_last = objectMapper.createObjectNode();
+    ObjectNode onode_links_prev = objectMapper.createObjectNode();
+    ObjectNode onode_links_next = objectMapper.createObjectNode();
+    ObjectNode onode_links_self = objectMapper.createObjectNode();
+    
+    ObjectNode onode_page = objectMapper.createObjectNode();
+    
+
+    List<ProjectSearchData> resultPage = searchResultService.findPaginated(pageable,searchText);
+    
+    for (ProjectSearchData project : resultPage) {
+      fillObjectNode(onode_projects_list.addObject(),project);
+    }
+    
+    onode_links_first.put("href",httpServletRequest.getRequestURI());
+    onode_links.set("first",onode_links_first);
+
+    onode_links_last.put("href",httpServletRequest.getRequestURI());
+    onode_links.set("last",onode_links_last);
+    
+    onode_links_prev.put("href",httpServletRequest.getRequestURI());
+    onode_links.set("prev",onode_links_prev);
+    
+    onode_links_next.put("href",httpServletRequest.getRequestURI());
+    onode_links.set("next",onode_links_next);
+    
+    onode_links_self.put("href",httpServletRequest.getRequestURI());
+    onode_links.set("self",onode_links_self);
+   
+
+ 
+    onode_projects.set("projects", onode_projects_list);
+    
+    onode_page.put("size",pageable.getPageSize());
+    onode_page.put("totalElements",0);
+    onode_page.put("totalPages",0);
+    onode_page.put("number",pageable.getPageNumber());
+
+    onode_root.set("_embedded", onode_projects);
+    onode_root.set("_links", onode_links);
+    onode_root.set("page", onode_page);
+
+
+    return onode_root.toString();
+
+  }
+  
   
   
 //  @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -89,26 +160,26 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 //  
   // ,params = { "pageable", "searchText" }  @RequestParam("page") int page, @RequestParam("size") int size, 
   
-  @GetMapping(value = "/products" , produces = MediaType.APPLICATION_JSON_VALUE)
-  public Page<Project> pages( @NotNull final Pageable pageable,
-      @RequestParam("searchText") String searchText) throws Exception {
-
-    List<Project> resultPage = searchResultService.findPaginated(pageable,searchText);
-//        if (pageable.getPageNumber() > resultPage.getTotalPages()) {
-//            throw new Exception("Page does not exist");
-//        }
-    
-    int start = (int) pageable.getOffset();
-
-    int end = (int) ((start + pageable.getPageSize()) > resultPage.size() ? resultPage.size()
-      : (start + pageable.getPageSize()));
-
- 
-    Page<Project> page 
-      = new PageImpl<Project>(resultPage.subList(start, end), pageable, resultPage.size());
-
-        return page;
-    }
+//  @GetMapping(value = "/products" , produces = MediaType.APPLICATION_JSON_VALUE)
+//  public Page<Project> pages( @NotNull final Pageable pageable,
+//      @RequestParam("searchText") String searchText) throws Exception {
+//
+//    List<Project> resultPage = searchResultService.findPaginated(pageable,searchText);
+////        if (pageable.getPageNumber() > resultPage.getTotalPages()) {
+////            throw new Exception("Page does not exist");
+////        }
+//    
+//    int start = (int) pageable.getOffset();
+//
+//    int end = (int) ((start + pageable.getPageSize()) > resultPage.size() ? resultPage.size()
+//      : (start + pageable.getPageSize()));
+//
+// 
+//    Page<Project> page 
+//      = new PageImpl<Project>(resultPage.subList(start, end), pageable, resultPage.size());
+//
+//        return page;
+//    }
 //  
 //  private String createLinkHeader(PagedResources < String > pr) {
 //    final StringBuilder linkHeader = new StringBuilder();

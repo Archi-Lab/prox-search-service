@@ -20,6 +20,7 @@ import io.archilab.prox.searchservice.project.ProjectDescription;
 import io.archilab.prox.searchservice.project.ProjectName;
 import io.archilab.prox.searchservice.project.ProjectRepository;
 import io.archilab.prox.searchservice.project.ProjectRequirement;
+import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.project.ProjectShortDescription;
 import io.archilab.prox.searchservice.project.ProjectStatus;
 import io.archilab.prox.searchservice.project.SupervisorName;
@@ -35,14 +36,14 @@ public class SearchResultService {
   Logger log = LoggerFactory.getLogger(ProjectRepository.class);
 
 
-  public List<Project> findPaginated(Pageable pageable, String searchText) throws Exception {
+  public List<ProjectSearchData> findPaginated(Pageable pageable, String searchText) throws Exception {
     
     
     if(projectRepository.count()==0)
     {
       for(int i=0;i<800;i++)
       {
-        Project testpp = new Project(new URI("3r4t5") , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
+        Project testpp = new Project(UUID.randomUUID(),new URI("3r4t5") , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
             new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
             new SupervisorName("fffffffffffff") );
         projectRepository.save(testpp);
