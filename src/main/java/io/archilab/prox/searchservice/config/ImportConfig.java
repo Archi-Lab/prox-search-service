@@ -49,7 +49,7 @@ public class ImportConfig implements SchedulingConfigurer {
         return nextExecutionTime.getTime();
       }
 
-      nextExecutionTime.add(Calendar.MINUTE, Integer.valueOf(env.getProperty("import.delay.minutes")));
+      nextExecutionTime.add(Calendar.SECOND, Integer.valueOf(env.getProperty("import.delay.seconds")));
 
       return nextExecutionTime.getTime();
     });

@@ -14,10 +14,8 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -33,7 +31,7 @@ public class ProjectClient {
 
     private String serviceUrl() {
         InstanceInfo instance = this.eurekaClient.getNextServerFromEureka("project-service", false);
-        String url = instance.getHomePageUrl() + "projects";
+        String url = instance.getHomePageUrl() + "projects/search";
         return url;
     }
 
@@ -48,67 +46,64 @@ public class ProjectClient {
         return new Traverson(uri, MediaTypes.HAL_JSON);
     }
 
-    public List<Project> getProjects() {
+    public List<Project> getProjects(Date startTime) {
         Traverson traverson = this.getTraversonInstance(this.serviceUrl());
 
 
         if (traverson == null) {
-            return new ArrayList<>();
+            return null;
         }
 
 
         List<Project> projects = new ArrayList<>();
 
         try {
-            int currentPage = 0;
-            boolean reachedLastPage = false;
 
-            while (!reachedLastPage) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("modified", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(startTime));
 
-                Map<String, Object> params = new HashMap<>();
-                params.put("page", currentPage);
+            final PagedResources<Resource<Project>> pagedProjectResources =
+                    traverson.follow("findAllByModifiedAfter").withTemplateParameters(params)
+                            .toObject(new TypeReferences.PagedResourcesType<Resource<Project>>() {
+                            });
 
-                final PagedResources<Resource<Project>> pagedProjectResources =
-                        traverson.follow("self").withTemplateParameters(params)
-                                .toObject(new TypeReferences.PagedResourcesType<Resource<Project>>() {});
+            for (Resource<Project> projectResource : pagedProjectResources.getContent()) {
 
-                reachedLastPage =
-                        (++currentPage >= pagedProjectResources.getMetadata().getTotalPages());
+                Project project = projectResource.getContent();
 
-                for (Resource<Project> projectResource : pagedProjectResources.getContent()) {
+                var uri = projectResource.getId().getHref();
 
-                    Project project = projectResource.getContent();
+                project.setUri(new URI(uri));
 
-                    var uri = projectResource.getId().getHref();
+                // Tags
+                Link tagCollection = projectResource.getLink("tagCollection");
 
-                    project.setUri(new URI(uri));
+                Traverson tagCollectionTraverson = this.getTraversonInstance(tagCollection.getHref());
 
-                    // Tags
-                    Link tagCollection = projectResource.getLink("tagCollection");
+                if (traverson != null) {
 
-                    Traverson tagCollectionTraverson = this.getTraversonInstance(tagCollection.getHref());
+                    final Resources<Resource<TagName>> tagResources = tagCollectionTraverson.follow("self")
+                            .toObject(new TypeReferences.ResourcesType<Resource<TagName>>() {
+                            });
 
-                    if (traverson != null) {
+                    for (Resource<TagName> moduleResource : tagResources.getContent()) {
 
-                        final Resources<Resource<TagName>> tagResources = tagCollectionTraverson.follow("self")
-                                .toObject(new TypeReferences.ResourcesType<Resource<TagName>>() {});
+                        TagName tag = moduleResource.getContent();
 
-                        for (Resource<TagName> moduleResource : tagResources.getContent()) {
-
-                            TagName tag = moduleResource.getContent();
-
-                            project.getTags().add(tag);
-                        }
+                        project.getTags().add(tag);
                     }
-
-                    projects.add(project);
                 }
+
+                projects.add(project);
             }
+
+            return projects;
+
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Error retrieving projects");
-        }
 
-        return projects;
+            return null;
+        }
     }
 }

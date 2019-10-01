@@ -12,7 +12,7 @@ keycloak:
   resource: search-service
 import:
   delay:
-    minutes: 1
+    seconds: 10
     initial:
       seconds: 1
 server:
