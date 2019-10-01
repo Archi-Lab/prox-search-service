@@ -15,3 +15,4 @@ public interface ProjectRepositoryCustom {
 //  public Page<ProjectUriProjection> findAllSearchedProjects3(Pageable pageable, String searchText) throws Exception;
 
 }
+

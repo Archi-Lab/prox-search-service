@@ -81,6 +81,12 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 //    }
 //    
     
+
+    Link searchPage = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchPage(null))
+            .withRel("searchPage");
+    resource.add(searchPage);
+    
+    
     
     Link self = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks()).withSelfRel();
     resource.add(self);
@@ -244,6 +250,11 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 //    return "<" + uri + ">; rel=\"" + rel + "\"";
 //   }
 
+  @GetMapping(value = "/searchPage")
+  public Page<URI> searchPage(Pageable pageable) {
+
+    return searchResultService.findAll(pageable, "");
+  }
   
   @GetMapping(value = "/searchAdvanced")
   public ResponseEntity<List<String>> searchAdvanced(@RequestParam(value = "page", required = false) Integer offset) {

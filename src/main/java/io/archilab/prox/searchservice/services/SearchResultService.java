@@ -45,7 +45,7 @@ public class SearchResultService {
     {
       for(int i=0;i<800;i++)
       {
-        Project testpp = new Project(UUID.randomUUID(),new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444"+i) , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
+        Project testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444"+i) , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
             new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
             new SupervisorName("fffffffffffff") );
         projectRepository.save(testpp);
@@ -64,5 +64,14 @@ public class SearchResultService {
     log.info(""+projectRepository.count());
     return projectRepository.count();
   }
+  
+  public Page<URI> findAll(Pageable pageable, String searchText) {
 
+    Page<Project> projects =  projectRepository.findAll(pageable);
+
+    return projects.map(project -> project.getUri());
+  }
+
+
+  
 }
