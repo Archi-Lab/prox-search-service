@@ -52,6 +52,6 @@ class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     super.configure(http);
     http.csrf().disable().authorizeRequests()
     
-    .anyRequest().denyAll();
+    .anyRequest().permitAll();
   }
 }

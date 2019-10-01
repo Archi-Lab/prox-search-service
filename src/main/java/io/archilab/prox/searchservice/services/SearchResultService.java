@@ -29,31 +29,31 @@ import io.archilab.prox.searchservice.project.SupervisorName;
 @Transactional
 
 public class SearchResultService {
-  
+
   @Autowired
   private ProjectRepository projectRepository;
-  
+
   Logger log = LoggerFactory.getLogger(ProjectRepository.class);
 
 
   public List<ProjectSearchData> findPaginated(Pageable pageable, String searchText) throws Exception {
-    
-    
-    if(projectRepository.count()==0)
-    {
-      for(int i=0;i<800;i++)
-      {
-        Project testpp = new Project(UUID.randomUUID(),new URI("3r4t5") , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
-            new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
-            new SupervisorName("fffffffffffff") );
+    if (projectRepository.count() == 0) {
+      for (int i = 0; i < 800; i++) {
+        Project testpp = new Project(new URI("3r4t5"), new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
+                new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
+                new SupervisorName("fffffffffffff"));
         projectRepository.save(testpp);
       }
       log.info("new data");
 
     }
-  
-    return projectRepository.findAllSearchedProjects(pageable,searchText);
-
+    return projectRepository.findAllSearchedProjects(pageable, searchText);
   }
 
+  public Page<URI> findAll(Pageable pageable, String searchText) {
+
+    Page<Project> projects =  projectRepository.findAll(pageable);
+
+    return projects.map(project -> project.getUri());
+  }
 }

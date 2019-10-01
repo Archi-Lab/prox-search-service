@@ -1,6 +1,7 @@
 package io.archilab.prox.searchservice.controller;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,6 +66,10 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     Link searchAdvanced = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchAdvanced(null))
         .withRel("searchAdvanced");
     resource.add(searchAdvanced);
+
+    Link searchPage = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchPage(null))
+            .withRel("searchPage");
+    resource.add(searchPage);
     
 //    Link pages;
 //    try {
@@ -193,6 +198,12 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 //    return "<" + uri + ">; rel=\"" + rel + "\"";
 //   }
 
+
+  @GetMapping(value = "/searchPage")
+  public Page<URI> searchPage(Pageable pageable) {
+
+    return searchResultService.findAll(pageable, "");
+  }
   
   @GetMapping(value = "/searchAdvanced")
   public ResponseEntity<List<String>> searchAdvanced(@RequestParam(value = "page", required = false) Integer offset) {
