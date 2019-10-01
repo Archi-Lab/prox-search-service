@@ -118,7 +118,7 @@ public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom{
         for(int i=0;i<fooList.size();i++)
         {
           Project pt = fooList.get(i);
-          String rest = pt.getId().toString();
+          String rest = pt.getUri().toString();
           retList.add(rest);
         }
         

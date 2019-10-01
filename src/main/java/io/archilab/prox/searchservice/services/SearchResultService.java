@@ -1,5 +1,6 @@
 package io.archilab.prox.searchservice.services;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,7 +42,7 @@ public class SearchResultService {
     {
       for(int i=0;i<800;i++)
       {
-        Project testpp = new Project(UUID.randomUUID() , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
+        Project testpp = new Project(new URI("3r4t5") , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
             new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
             new SupervisorName("fffffffffffff") );
         projectRepository.save(testpp);
