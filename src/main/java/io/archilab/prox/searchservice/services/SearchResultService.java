@@ -1,9 +1,16 @@
 package io.archilab.prox.searchservice.services;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
@@ -35,6 +42,10 @@ public class SearchResultService {
   @Autowired
   private ProjectRepository projectRepository;
   
+  @PersistenceContext
+  private EntityManager entityManager;
+
+  
   Logger log = LoggerFactory.getLogger(ProjectRepository.class);
 
 
@@ -53,8 +64,50 @@ public class SearchResultService {
       log.info("new data");
 
     }
+    
+    List<ProjectSearchData> retList = new ArrayList<>();
+    
+    
+    int pageNumber = pageable.getPageNumber();
+    int pageSize = pageable.getPageSize();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
+    
+    countQuery.select(criteriaBuilder
+        .count(countQuery.from(Project.class)));
+      Long count = entityManager.createQuery(countQuery)
+        .getSingleResult();
+
+      CriteriaQuery<Project> criteriaQuery = criteriaBuilder
+        .createQuery(Project.class);
+      Root<Project> from = criteriaQuery.from(Project.class);
+      CriteriaQuery<Project> select = criteriaQuery.select(from);
+
+      TypedQuery<Project> typedQuery = entityManager.createQuery(select);
+      
+      typedQuery.setFirstResult(pageNumber);
+      typedQuery.setMaxResults(pageSize);
+      
+      if(pageNumber < count.intValue())
+      {
+        List<Project> fooList = typedQuery.getResultList();
+ 
+        for(int i=0;i<fooList.size();i++)
+        {
+          Project pt = fooList.get(i);
+          URI rest = pt.getUri();
+          retList.add(new ProjectSearchData(rest));
+        }
+        
+      }
+      else
+      {
+        throw new Exception("page size too big");
+      }
+      
   
-    return projectRepository.findAllSearchedProjects(pageable,searchText);
+      return retList;
 
   }
 
