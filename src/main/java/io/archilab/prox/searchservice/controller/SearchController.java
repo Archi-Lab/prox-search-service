@@ -7,6 +7,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +21,10 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceProcessor;
 import org.springframework.hateoas.ResourceSupport;
+import org.springframework.hateoas.TemplateVariable;
+import org.springframework.hateoas.TemplateVariables;
+import org.springframework.hateoas.UriTemplate;
+import org.springframework.hateoas.mvc.BasicLinkBuilder;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,6 +46,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.archilab.prox.searchservice.project.Project;
+import io.archilab.prox.searchservice.project.ProjectRepository;
 import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.services.SearchResultService;
 
@@ -49,39 +56,55 @@ import io.archilab.prox.searchservice.services.SearchResultService;
 @RequestMapping("search")
 public class SearchController implements ResourceProcessor<RepositoryLinksResource> {
 
+  Logger log = LoggerFactory.getLogger(SearchController.class);
+
+  
   @Autowired
   SearchResultService searchResultService;
+  
+  
+  private static TemplateVariables getBaseTemplateVariables() {
+    return new TemplateVariables(
+        new TemplateVariable("page", TemplateVariable.VariableType.REQUEST_PARAM),
+        new TemplateVariable("sort", TemplateVariable.VariableType.REQUEST_PARAM),
+        new TemplateVariable("size", TemplateVariable.VariableType.REQUEST_PARAM),
+        new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM)
+    );
+  }
   
   @GetMapping(value = "/")
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
     
     
+    
+//    UriTemplate esd = new UriTemplate();
+    final String linkToController = ControllerLinkBuilder.linkTo(SearchController.class).toString();
+    
+    
+
     try {
-      Link searchProjects = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchProjects(Pageable.unpaged(),null,null))
-          .withRel("projects");
-      resource.add(searchProjects);
+      
+      Link sasa = new Link(
+          new UriTemplate(
+              linkToController+"/projects",
+              // register it as variable
+                  getBaseTemplateVariables()
+          ),
+          "projects"
+      );
+      
+      resource.add(sasa);
+
     } catch (Exception e1) {
       e1.printStackTrace();
     }
     
 
-    Link searchAdvanced = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchAdvanced(null))
+    Link searchAdvanced = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchAdvanced(null,null))
         .withRel("searchAdvanced");
     resource.add(searchAdvanced);
     
-//    Link pages;
-//    try {
-//      pages = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).pages(null,null))
-//          .withRel("pages");
-//      resource.add(pages);
-//    } catch (Exception e) {
-//      
-//      e.printStackTrace();
-//    }
-//    
-    
-
     Link searchPage = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchPage(null))
             .withRel("searchPage");
     resource.add(searchPage);
@@ -257,7 +280,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   }
   
   @GetMapping(value = "/searchAdvanced")
-  public ResponseEntity<List<String>> searchAdvanced(@RequestParam(value = "page", required = false) Integer offset) {
+  public ResponseEntity<List<String>> searchAdvanced(@NotNull Pageable pageable, @RequestParam String offset) {
     ResponseEntity<List<String>> response = new ResponseEntity<List<String>>(HttpStatus.ACCEPTED);
     // response.getBody().add("hallo121");
 
