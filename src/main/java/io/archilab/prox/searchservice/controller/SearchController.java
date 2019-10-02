@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
+import io.archilab.prox.searchservice.services.CachedSearchResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +60,12 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
   Logger log = LoggerFactory.getLogger(SearchController.class);
 
-  
+
   @Autowired
   SearchResultService searchResultService;
-  
+
+  @Autowired
+  CachedSearchResultService cachedSearchResultService;
   
   private static TemplateVariables getBaseTemplateVariables() {
     return new TemplateVariables(
@@ -100,17 +103,23 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     } catch (Exception e1) {
       e1.printStackTrace();
     }
-    
 
-    Link searchAdvanced = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchAdvanced(null,null))
-        .withRel("searchAdvanced");
-    resource.add(searchAdvanced);
-    
-    Link searchPage = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchPage(null))
-            .withRel("searchPage");
-    resource.add(searchPage);
-    
-    
+    try {
+
+      Link sasa = new Link(
+              new UriTemplate(
+                      linkToController+"/cachedProjects",
+                      // register it as variable
+                      getBaseTemplateVariables()
+              ),
+              "cachedProjects"
+      );
+
+      resource.add(sasa);
+
+    } catch (Exception e1) {
+      e1.printStackTrace();
+    }
     
     Link self = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks()).withSelfRel();
     resource.add(self);
@@ -227,66 +236,113 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     return onode_root.toString();
 
   }
-  
-  
-  
-//  @GetMapping(value = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
-//  public ResponseEntity < PagedResources < String >> pages2(Pageable pageable, PagedResourcesAssembler assembler) {
-//   Page < String > products = Page.empty( pageable);
-//   PagedResources < String > pr = assembler.toResource(products, ControllerLinkBuilder.linkTo(SearchController.class).slash("/products").withSelfRel());
-//   HttpHeaders responseHeaders = new HttpHeaders();
-//   responseHeaders.add("Link", createLinkHeader(pr));
-//   return new ResponseEntity < > (assembler.toResource(products, ControllerLinkBuilder.linkTo(SearchController.class).slash("/products").withSelfRel()), responseHeaders, HttpStatus.OK);
-//  }
-//  
-  // ,params = { "pageable", "searchText" }  @RequestParam("page") int page, @RequestParam("size") int size, 
-  
-//  @GetMapping(value = "/products" , produces = MediaType.APPLICATION_JSON_VALUE)
-//  public Page<Project> pages( @NotNull final Pageable pageable,
-//      @RequestParam("searchText") String searchText) throws Exception {
-//
-//    List<Project> resultPage = searchResultService.findPaginated(pageable,searchText);
-////        if (pageable.getPageNumber() > resultPage.getTotalPages()) {
-////            throw new Exception("Page does not exist");
-////        }
-//    
-//    int start = (int) pageable.getOffset();
-//
-//    int end = (int) ((start + pageable.getPageSize()) > resultPage.size() ? resultPage.size()
-//      : (start + pageable.getPageSize()));
-//
-// 
-//    Page<Project> page 
-//      = new PageImpl<Project>(resultPage.subList(start, end), pageable, resultPage.size());
-//
-//        return page;
-//    }
-//  
-//  private String createLinkHeader(PagedResources < String > pr) {
-//    final StringBuilder linkHeader = new StringBuilder();
-////    linkHeader.append(buildLinkHeader(pr.getLinks("first").get(0).getHref(), "first"));
-////    linkHeader.append(", ");
-////    linkHeader.append(buildLinkHeader(pr.getLinks("next").get(0).getHref(), "next"));
-//    return linkHeader.toString();
-//   }
-//
-//   public static String buildLinkHeader(final String uri, final String rel) {
-//    return "<" + uri + ">; rel=\"" + rel + "\"";
-//   }
 
-  @GetMapping(value = "/searchPage")
-  public Page<UUID> searchPage(Pageable pageable) {
+  @GetMapping(value = "/cachedProjects" , produces=MediaType.APPLICATION_JSON_VALUE)
+  public String searchCachedProjects(@NotNull final Pageable pageable,  @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest) throws Exception {
 
-    return searchResultService.findAll(pageable, "");
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    ObjectNode onode_root = objectMapper.createObjectNode();
+    ObjectNode onode_projects = objectMapper.createObjectNode();
+    ArrayNode onode_projects_list = objectMapper.createArrayNode();
+    ObjectNode onode_links = objectMapper.createObjectNode();
+
+    ObjectNode onode_links_first = objectMapper.createObjectNode();
+    ObjectNode onode_links_last = objectMapper.createObjectNode();
+    ObjectNode onode_links_prev = objectMapper.createObjectNode();
+    ObjectNode onode_links_next = objectMapper.createObjectNode();
+    ObjectNode onode_links_self = objectMapper.createObjectNode();
+
+    ObjectNode onode_page = objectMapper.createObjectNode();
+
+
+    List<ProjectSearchData> resultPage = cachedSearchResultService.findPaginated(pageable,searchText);
+
+    for (ProjectSearchData project : resultPage) {
+      fillObjectNode(onode_projects_list.addObject(),project);
+    }
+
+
+
+    long totalElements = cachedSearchResultService.getTotalElements();
+    long lastPage = ((totalElements - 1l) / (long)pageable.getPageSize()) + 1l;
+    onode_page.put("size",pageable.getPageSize());
+    onode_page.put("totalElements",totalElements);
+    onode_page.put("totalPages", lastPage);
+    onode_page.put("number",pageable.getPageNumber());
+
+
+
+
+    StringBuilder requestURL = new StringBuilder(httpServletRequest.getRequestURL().toString());
+    String queryString = httpServletRequest.getQueryString();
+
+    if (queryString != null)
+    {
+      requestURL.append('?').append(queryString).toString();
+    }
+    UriComponents ucb=null;
+    URI uri = null;
+    ucb =
+            ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+                    .replaceQueryParam("page", "0")
+                    .build();
+    uri = ucb.toUri();
+    onode_links_first.put("href",uri.toString());
+    onode_links.set("first",onode_links_first);
+
+    ucb =
+            ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+                    .replaceQueryParam("page", String.valueOf(lastPage))
+                    .build();
+    uri = ucb.toUri();
+    onode_links_last.put("href",uri.toString());
+    onode_links.set("last",onode_links_last);
+
+
+    if(0!=pageable.getPageNumber())
+    {
+      ucb =
+              ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+                      .replaceQueryParam("page", String.valueOf((pageable.getPageNumber()+1)))
+                      .build();
+      uri = ucb.toUri();
+      onode_links_prev.put("href",uri.toString());
+      onode_links.set("prev",onode_links_prev);
+    }
+
+
+    if(lastPage!=pageable.getPageNumber())
+    {
+      ucb =
+              ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+                      .replaceQueryParam("page",  String.valueOf((pageable.getPageNumber()+1)))
+                      .build();
+      uri = ucb.toUri();
+      onode_links_next.put("href",uri.toString());
+      onode_links.set("next",onode_links_next);
+    }
+
+
+    ucb =
+            ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+                    .build();
+    uri = ucb.toUri();
+    onode_links_self.put("href",uri.toString());
+    onode_links.set("self",onode_links_self);
+
+
+    onode_projects.set("projects", onode_projects_list);
+
+    onode_root.set("_embedded", onode_projects);
+    onode_root.set("_links", onode_links);
+    onode_root.set("page", onode_page);
+
+    return onode_root.toString();
+
   }
-  
-  @GetMapping(value = "/searchAdvanced")
-  public ResponseEntity<List<String>> searchAdvanced(@NotNull Pageable pageable, @RequestParam String offset) {
-    ResponseEntity<List<String>> response = new ResponseEntity<List<String>>(HttpStatus.ACCEPTED);
-    // response.getBody().add("hallo121");
 
-    return response;
-  }
+
 
   @Override
   public RepositoryLinksResource process(RepositoryLinksResource resource) {

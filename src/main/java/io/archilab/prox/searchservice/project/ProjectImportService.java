@@ -1,5 +1,7 @@
 package io.archilab.prox.searchservice.project;
 
+import io.archilab.prox.searchservice.services.CachedSearchResultService;
+import io.archilab.prox.searchservice.services.SearchResultService;
 import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +19,14 @@ public class ProjectImportService {
     private final Logger logger = LoggerFactory.getLogger(ProjectClient.class);
     private final ProjectRepository projectRepository;
     private final ProjectClient projectClient;
+    private final CachedSearchResultService cachedSearchResultService;
 
     private Date _lastUpdate = new Date(1);
 
-    public ProjectImportService(ProjectClient projectClient, ProjectRepository projectRepository) {
+    public ProjectImportService(ProjectClient projectClient, ProjectRepository projectRepository, CachedSearchResultService cachedSearchResultService) {
         this.projectClient = projectClient;
         this.projectRepository = projectRepository;
+        this.cachedSearchResultService = cachedSearchResultService;
     }
 
     public void importProjects() {
@@ -55,6 +59,9 @@ public class ProjectImportService {
         this.logger.info(projects.size() + " projects imported");
 
         this._lastUpdate = startTime;
+
+        if(projects.size() > 0)
+            this.cachedSearchResultService.load();
     }
 }
 
