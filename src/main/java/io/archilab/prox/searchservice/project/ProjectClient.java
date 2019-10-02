@@ -16,6 +16,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @Slf4j
@@ -72,8 +74,15 @@ public class ProjectClient {
                 Project project = projectResource.getContent();
 
                 var uri = projectResource.getId().getHref();
+                
+                Pattern pairRegex = Pattern.compile("\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}");
+                Matcher matcher = pairRegex.matcher(uri.toString());
+                while (matcher.find()) {
+                    String id_uuid = matcher.group(0);
+                    project.setId(UUID.fromString(id_uuid));
+                }
 
-                project.setUri(new URI(uri));
+                
 
                 // Tags
                 Link tagCollection = projectResource.getLink("tagCollection");

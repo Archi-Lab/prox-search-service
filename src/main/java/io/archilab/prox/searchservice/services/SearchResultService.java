@@ -57,14 +57,14 @@ public class SearchResultService {
     {
 //      for(int i=0;i<800;i++)
 //      {
-//        Project testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444"+i) , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
+//        Project testpp = new Project(UUID.randomUUID() , new ProjectName(String.valueOf(i)), new ProjectShortDescription("sfeeeeeeeeee"),
 //            new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
 //            new SupervisorName("fffffffffffff") );
 //        testpp.getTags().add(e)
 //        projectRepository.save(testpp);
 //      }
       Project testpp = null;
-      testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444") , new ProjectName("Hallo Hallo hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName("Hallo Hallo hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tag1"));
@@ -73,7 +73,7 @@ public class SearchResultService {
       testpp.getTags().add(new TagName("tag4"));
       projectRepository.save(testpp);
       
-      testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444") , new ProjectName("wer wer wer wer Hallo wir hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName("wer wer wer wer Hallo wir hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tag1"));
@@ -82,7 +82,7 @@ public class SearchResultService {
       testpp.getTags().add(new TagName("tag4"));
       projectRepository.save(testpp);
       
-      testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444") , new ProjectName("Hallo wir wir wir wir wir wir hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName("Hallo wir wir wir wir wir wir hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tag1"));
@@ -91,7 +91,7 @@ public class SearchResultService {
       testpp.getTags().add(new TagName("tt22"));
       projectRepository.save(testpp);
       
-      testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444") , new ProjectName("Hallo Hallo wer wie wo wer wie wo hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName("Hallo Hallo wer wie wo wer wie wo hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tttt"));
@@ -100,7 +100,7 @@ public class SearchResultService {
       testpp.getTags().add(new TagName("tt44"));
       projectRepository.save(testpp);
       
-      testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444") , new ProjectName(" Hallo hasu  warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName(" Hallo hasu  warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tag1"));
@@ -109,7 +109,7 @@ public class SearchResultService {
       testpp.getTags().add(new TagName("tag4"));
       projectRepository.save(testpp);
       
-      testpp = new Project(new URI("http://t4tgegtete4t/bhrjkge54ughe/bnnnnn444444") , new ProjectName("Hallo   haus warum "), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName("Hallo   haus warum "), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tag1"));
@@ -151,8 +151,7 @@ public class SearchResultService {
         for(int i=0;i<fooList.size();i++)
         {
           Project pt = fooList.get(i);
-          URI rest = pt.getUri();
-          retList.add(new ProjectSearchData(rest));
+          retList.add(new ProjectSearchData(pt.getId()));
         }
         
       }
@@ -173,11 +172,11 @@ public class SearchResultService {
     return projectRepository.count();
   }
   
-  public Page<URI> findAll(Pageable pageable, String searchText) {
+  public Page<UUID> findAll(Pageable pageable, String searchText) {
 
     Page<Project> projects =  projectRepository.findAll(pageable);
 
-    return projects.map(project -> project.getUri());
+    return projects.map(project -> project.getId());
   }
 
 

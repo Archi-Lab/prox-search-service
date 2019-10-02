@@ -3,6 +3,7 @@ package io.archilab.prox.searchservice.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
@@ -119,7 +120,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   
   private void fillObjectNode(ObjectNode onode, ProjectSearchData projectSearchData)
   {
-    onode.put("uri", projectSearchData.getId());
+    onode.put("id", projectSearchData.getId());
   }
   
   @GetMapping(value = "/projects" , produces=MediaType.APPLICATION_JSON_VALUE)
@@ -274,7 +275,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 //   }
 
   @GetMapping(value = "/searchPage")
-  public Page<URI> searchPage(Pageable pageable) {
+  public Page<UUID> searchPage(Pageable pageable) {
 
     return searchResultService.findAll(pageable, "");
   }

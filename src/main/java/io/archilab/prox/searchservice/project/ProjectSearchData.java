@@ -16,12 +16,9 @@ public class ProjectSearchData {
 
   private String id;
 
-  public ProjectSearchData(URI uri) {
+  public ProjectSearchData(UUID id) {
+    this.id=id.toString();
 
-      Pattern pairRegex = Pattern.compile("\\p{XDigit}{8}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{4}-\\p{XDigit}{12}");
-      Matcher matcher = pairRegex.matcher(uri.toString());
-      while (matcher.find()) {
-          this.id = matcher.group(0);
-      }
+
   }
 }

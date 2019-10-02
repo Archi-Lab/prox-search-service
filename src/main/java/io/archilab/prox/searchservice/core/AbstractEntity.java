@@ -10,7 +10,6 @@ import lombok.Setter;
 
 @MappedSuperclass
 @Data
-@Setter(AccessLevel.NONE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class AbstractEntity {
 

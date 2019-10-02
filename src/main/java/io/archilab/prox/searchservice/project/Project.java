@@ -23,16 +23,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project{
+public class Project extends AbstractEntity{
 
   @Setter
   @JsonUnwrapped
   private ProjectName name;
 
-  @Id
-  @Setter
-  @JsonUnwrapped
-  private URI uri;
+//  @Id
+//  @Setter
+//  @JsonUnwrapped
+//  private URI uri;
 
   @Setter
   @JsonUnwrapped
@@ -68,11 +68,12 @@ public class Project{
   private java.util.Date modified;
 
 
-  public Project(URI uri, ProjectName name, ProjectShortDescription shortDescription,
+  public Project(UUID id, ProjectName name, ProjectShortDescription shortDescription,
       ProjectDescription description, ProjectStatus status, ProjectRequirement requirement,
          @NotNull SupervisorName supervisorName )  {
 
-    this.uri = uri;
+//    this.uri = uri;
+    super(id);
     this.requirement = requirement;
     this.name = name;
     this.shortDescription = shortDescription;

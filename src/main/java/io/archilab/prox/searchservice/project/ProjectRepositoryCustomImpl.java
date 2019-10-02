@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -59,7 +60,7 @@ public class ProjectRepositoryCustomImpl implements ProjectRepositoryCustom{
         for(int i=0;i<fooList.size();i++)
         {
           Project pt = fooList.get(i);
-          URI rest = pt.getUri();
+          UUID rest = pt.getId();
           retList.add(new ProjectSearchData(rest));
         }
         return retList;
