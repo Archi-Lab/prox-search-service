@@ -96,7 +96,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   
   private void fillObjectNode(ObjectNode onode, ProjectSearchData projectSearchData)
   {
-    onode.put("uri", projectSearchData.getUri() );
+    onode.put("id", projectSearchData.getId() );
   }
   
   @GetMapping(value = "/projects" , produces=MediaType.APPLICATION_JSON_VALUE)
