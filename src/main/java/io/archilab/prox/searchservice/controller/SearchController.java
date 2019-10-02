@@ -56,11 +56,11 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
     
-    Link searchBasic;
+    
     try {
-      searchBasic = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchBasic(Pageable.unpaged(),null,null))
-          .withRel("searchBasic");
-      resource.add(searchBasic);
+      Link searchProjects = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).searchProjects(Pageable.unpaged(),null,null))
+          .withRel("projects");
+      resource.add(searchProjects);
     } catch (Exception e1) {
       e1.printStackTrace();
     }
@@ -99,8 +99,8 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     onode.put("uri", projectSearchData.getUri() );
   }
   
-  @GetMapping(value = "/searchBasic" , produces=MediaType.APPLICATION_JSON_VALUE)
-  public String searchBasic(@NotNull final Pageable pageable,  @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest) throws Exception {
+  @GetMapping(value = "/projects" , produces=MediaType.APPLICATION_JSON_VALUE)
+  public String searchProjects(@NotNull final Pageable pageable,  @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest) throws Exception {
 
     ObjectMapper objectMapper = new ObjectMapper();
     
