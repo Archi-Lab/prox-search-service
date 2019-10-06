@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,13 +28,13 @@ public class CachedSearchResultService {
   private List<Project> cache;
 
   @Autowired
-  public CachedSearchResultService(ProjectRepository projectRepository){
+  public CachedSearchResultService(ProjectRepository projectRepository) {
     this.projectRepository = projectRepository;
 
     this.load();
   }
 
-  public void load(){
+  public void load() {
 
     var cache = new ArrayList<Project>();
 
@@ -46,12 +45,12 @@ public class CachedSearchResultService {
     log.info("SearchService: Projects loaded");
   }
 
-  public Long getTotalElements()
-  {
+  public Long getTotalElements() {
     return projectRepository.count();
   }
 
-  public List<ProjectSearchData> findPaginated(Pageable pageable, String searchText) throws Exception {
+  public List<ProjectSearchData> findPaginated(Pageable pageable, String searchText)
+      throws Exception {
 
     int pageNumber = pageable.getPageNumber();
     int pageSize = pageable.getPageSize();
@@ -72,9 +71,8 @@ public class CachedSearchResultService {
     return retList;
   }
 
-  private List<Project> getProjects(String filter)
-  {
-    if(filter == null || filter.length() < 2)
+  private List<Project> getProjects(String filter) {
+    if (filter == null || filter.length() < 2)
       return this.cache;
 
     filter = filter.toLowerCase();
@@ -85,32 +83,33 @@ public class CachedSearchResultService {
 
     // Supervisor
     var supervisorFilter = this.getFilter(filter, "Betreuer");
-    if(supervisorFilter.hasValues){
+    if (supervisorFilter.hasValues) {
       result = new ArrayList<>(this.filterBySupervisor(result, supervisorFilter.values));
       filter = supervisorFilter.filter;
     }
 
-    if(filter.length() < 2)
+    if (filter.length() < 2)
       return result;
 
     // Short Description
     var shortDescriptionFilter = this.getFilter(filter, "Kurzbeschreibung");
-    if(shortDescriptionFilter.hasValues){
-      result = new ArrayList<>(this.filterByShortDescription(result, shortDescriptionFilter.values));
+    if (shortDescriptionFilter.hasValues) {
+      result =
+          new ArrayList<>(this.filterByShortDescription(result, shortDescriptionFilter.values));
       filter = shortDescriptionFilter.filter;
     }
 
-    if(filter.length() < 2)
+    if (filter.length() < 2)
       return result;
 
     // Description
     var descriptionFilter = this.getFilter(filter, "Beschreibung");
-    if(descriptionFilter.hasValues){
+    if (descriptionFilter.hasValues) {
       result = new ArrayList<>(this.filterByDescription(result, descriptionFilter.values));
       filter = descriptionFilter.filter;
     }
 
-    if(filter.length() < 2)
+    if (filter.length() < 2)
       return result;
 
     log.info(filter);
@@ -119,7 +118,7 @@ public class CachedSearchResultService {
 
     Pattern reg = Pattern.compile("(\\w+)");
     Matcher m = reg.matcher(filter);
-    while (m.find()){
+    while (m.find()) {
       words.add(m.group());
       log.info("Word: " + m.group());
     }
@@ -138,7 +137,7 @@ public class CachedSearchResultService {
   }
 
 
-  private FilterResult getFilter(String searchString, String key){
+  private FilterResult getFilter(String searchString, String key) {
     List<String> result = new ArrayList<>();
 
     var pattern = key.toLowerCase() + "\\s*=\\s*['\"](\\S*)['\"]";
@@ -213,13 +212,12 @@ public class CachedSearchResultService {
     return result;
   }
 
-  private class FilterResult
-  {
+  private class FilterResult {
     Boolean hasValues;
     List<String> values;
     String filter;
 
-    FilterResult(List<String> values, String filter){
+    FilterResult(List<String> values, String filter) {
       this.values = values;
       this.filter = filter;
       this.hasValues = values.size() > 0;
@@ -227,15 +225,16 @@ public class CachedSearchResultService {
   }
 
 
-  private void updateSupervisorWeight(List<WeightedProject> projects, List<String> words, int weightValue) {
+  private void updateSupervisorWeight(List<WeightedProject> projects, List<String> words,
+      int weightValue) {
     for (WeightedProject weightedProject : projects) {
       Project project = weightedProject.getProject();
       int weight = weightedProject.getWeight();
 
       String supervisorName = project.getSupervisorName().getSupervisorName().toLowerCase();
 
-      for (String word: words) {
-        if(supervisorName.contains(word)){
+      for (String word : words) {
+        if (supervisorName.contains(word)) {
           weight += weightValue;
         }
       }
@@ -244,15 +243,16 @@ public class CachedSearchResultService {
     }
   }
 
-  private void updateTitleWeight(List<WeightedProject> projects, List<String> words, int weightValue) {
+  private void updateTitleWeight(List<WeightedProject> projects, List<String> words,
+      int weightValue) {
     for (WeightedProject weightedProject : projects) {
       Project project = weightedProject.getProject();
       int weight = weightedProject.getWeight();
 
       String name = project.getName().getName().toLowerCase();
 
-      for (String word: words) {
-        if(name.contains(word)){
+      for (String word : words) {
+        if (name.contains(word)) {
           weight += weightValue;
         }
       }

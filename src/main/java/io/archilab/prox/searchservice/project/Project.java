@@ -1,14 +1,11 @@
 package io.archilab.prox.searchservice.project;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 import io.archilab.prox.searchservice.core.AbstractEntity;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -23,16 +20,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project extends AbstractEntity{
+public class Project extends AbstractEntity {
 
   @Setter
   @JsonUnwrapped
   private ProjectName name;
 
-//  @Id
-//  @Setter
-//  @JsonUnwrapped
-//  private URI uri;
+  // @Id
+  // @Setter
+  // @JsonUnwrapped
+  // private URI uri;
 
   @Setter
   @JsonUnwrapped
@@ -53,7 +50,7 @@ public class Project extends AbstractEntity{
   @Setter
   @JsonUnwrapped
   private SupervisorName supervisorName;
-  
+
   @Getter
   @ElementCollection
   private List<TagName> tags = new ArrayList<>();
@@ -70,9 +67,9 @@ public class Project extends AbstractEntity{
 
   public Project(UUID id, ProjectName name, ProjectShortDescription shortDescription,
       ProjectDescription description, ProjectStatus status, ProjectRequirement requirement,
-         @NotNull SupervisorName supervisorName )  {
+      @NotNull SupervisorName supervisorName) {
 
-//    this.uri = uri;
+    // this.uri = uri;
     super(id);
     this.requirement = requirement;
     this.name = name;
