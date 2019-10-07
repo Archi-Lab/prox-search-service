@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
-
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +38,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.archilab.prox.searchservice.project.Project;
 import io.archilab.prox.searchservice.project.ProjectRepository;
 import io.archilab.prox.searchservice.project.ProjectSearchData;
@@ -66,38 +62,32 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
   @Autowired
   CachedSearchResultService cachedSearchResultService;
-  
+
   private static TemplateVariables getBaseTemplateVariables() {
     return new TemplateVariables(
         new TemplateVariable("page", TemplateVariable.VariableType.REQUEST_PARAM),
         new TemplateVariable("sort", TemplateVariable.VariableType.REQUEST_PARAM),
         new TemplateVariable("size", TemplateVariable.VariableType.REQUEST_PARAM),
-        new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM)
-    );
+        new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM));
   }
-  
+
   @GetMapping(value = "/")
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
-    
-    
-    
-//    UriTemplate esd = new UriTemplate();
+
+
+
+    // UriTemplate esd = new UriTemplate();
     final String linkToController = ControllerLinkBuilder.linkTo(SearchController.class).toString();
-    
-    
+
+
 
     try {
-      
-      Link sasa = new Link(
-          new UriTemplate(
-              linkToController+"/projects",
-              // register it as variable
-                  getBaseTemplateVariables()
-          ),
-          "projects"
-      );
-      
+
+      Link sasa = new Link(new UriTemplate(linkToController + "/projects",
+          // register it as variable
+          getBaseTemplateVariables()), "projects");
+
       resource.add(sasa);
 
     } catch (Exception e1) {
@@ -106,129 +96,112 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     try {
 
-      Link sasa = new Link(
-              new UriTemplate(
-                      linkToController+"/cachedProjects",
-                      // register it as variable
-                      getBaseTemplateVariables()
-              ),
-              "cachedProjects"
-      );
+      Link sasa = new Link(new UriTemplate(linkToController + "/cachedProjects",
+          // register it as variable
+          getBaseTemplateVariables()), "cachedProjects");
 
       resource.add(sasa);
 
     } catch (Exception e1) {
       e1.printStackTrace();
     }
-    
-    Link self = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks()).withSelfRel();
+
+    Link self = ControllerLinkBuilder
+        .linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks()).withSelfRel();
     resource.add(self);
 
     return resource;
   }
-  
-  private void fillObjectNode(ObjectNode onode, ProjectSearchData projectSearchData)
-  {
+
+  private void fillObjectNode(ObjectNode onode, ProjectSearchData projectSearchData) {
     onode.put("id", projectSearchData.getId());
   }
-  
-  @GetMapping(value = "/projects" , produces=MediaType.APPLICATION_JSON_VALUE)
-  public String searchProjects(@NotNull final Pageable pageable,  @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest) throws Exception {
+
+  @GetMapping(value = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
+  public String searchProjects(@NotNull final Pageable pageable,
+      @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
+      throws Exception {
 
     ObjectMapper objectMapper = new ObjectMapper();
-    
+
     ObjectNode onode_root = objectMapper.createObjectNode();
     ObjectNode onode_projects = objectMapper.createObjectNode();
     ArrayNode onode_projects_list = objectMapper.createArrayNode();
     ObjectNode onode_links = objectMapper.createObjectNode();
-    
+
     ObjectNode onode_links_first = objectMapper.createObjectNode();
     ObjectNode onode_links_last = objectMapper.createObjectNode();
     ObjectNode onode_links_prev = objectMapper.createObjectNode();
     ObjectNode onode_links_next = objectMapper.createObjectNode();
     ObjectNode onode_links_self = objectMapper.createObjectNode();
-    
+
     ObjectNode onode_page = objectMapper.createObjectNode();
-    
-    
-    List<ProjectSearchData> resultPage = searchResultService.findPaginated(pageable,searchText);
-    
+
+
+    List<ProjectSearchData> resultPage = searchResultService.findPaginated(pageable, searchText);
+
     for (ProjectSearchData project : resultPage) {
-      fillObjectNode(onode_projects_list.addObject(),project);
+      fillObjectNode(onode_projects_list.addObject(), project);
     }
-    
-    
-    
-    long totalElements = searchResultService.getTotalElements();  
-    long lastPage = ((totalElements - 1l) / (long)pageable.getPageSize()) + 1l;
-    onode_page.put("size",pageable.getPageSize());
-    onode_page.put("totalElements",totalElements);
+
+
+
+    long totalElements = searchResultService.getTotalElements();
+    long lastPage = ((totalElements - 1l) / (long) pageable.getPageSize()) + 1l;
+    onode_page.put("size", pageable.getPageSize());
+    onode_page.put("totalElements", totalElements);
     onode_page.put("totalPages", lastPage);
-    onode_page.put("number",pageable.getPageNumber());
+    onode_page.put("number", pageable.getPageNumber());
 
 
 
-    
     StringBuilder requestURL = new StringBuilder(httpServletRequest.getRequestURL().toString());
     String queryString = httpServletRequest.getQueryString();
 
-    if (queryString != null) 
-    {
+    if (queryString != null) {
       requestURL.append('?').append(queryString).toString();
-    } 
-    UriComponents ucb=null;
+    }
+    UriComponents ucb = null;
     URI uri = null;
-    ucb =
-        ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-            .replaceQueryParam("page", "0")
-            .build();
-    uri = ucb.toUri();     
-    onode_links_first.put("href",uri.toString());
-    onode_links.set("first",onode_links_first);
+    ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest).replaceQueryParam("page", "0")
+        .build();
+    uri = ucb.toUri();
+    onode_links_first.put("href", uri.toString());
+    onode_links.set("first", onode_links_first);
 
-    ucb =
-        ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-            .replaceQueryParam("page", String.valueOf(lastPage))
-            .build();
-    uri = ucb.toUri();  
-    onode_links_last.put("href",uri.toString());
-    onode_links.set("last",onode_links_last);
-    
-    
-    if(0!=pageable.getPageNumber())
-    {
-      ucb =
-          ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-              .replaceQueryParam("page", String.valueOf((pageable.getPageNumber()+1)))
-              .build();
-      uri = ucb.toUri();  
-      onode_links_prev.put("href",uri.toString());
-      onode_links.set("prev",onode_links_prev);
+    ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+        .replaceQueryParam("page", String.valueOf(lastPage)).build();
+    uri = ucb.toUri();
+    onode_links_last.put("href", uri.toString());
+    onode_links.set("last", onode_links_last);
+
+
+    if (0 != pageable.getPageNumber()) {
+      ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() + 1))).build();
+      uri = ucb.toUri();
+      onode_links_prev.put("href", uri.toString());
+      onode_links.set("prev", onode_links_prev);
     }
 
-    
-    if(lastPage!=pageable.getPageNumber())
-    {
-      ucb =
-          ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-              .replaceQueryParam("page",  String.valueOf((pageable.getPageNumber()+1)))
-              .build();
-      uri = ucb.toUri();  
-      onode_links_next.put("href",uri.toString());
-      onode_links.set("next",onode_links_next);
+
+    if (lastPage != pageable.getPageNumber()) {
+      ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() + 1))).build();
+      uri = ucb.toUri();
+      onode_links_next.put("href", uri.toString());
+      onode_links.set("next", onode_links_next);
     }
 
-    
-    ucb =
-        ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-            .build();
-    uri = ucb.toUri();   
-    onode_links_self.put("href",uri.toString());
-    onode_links.set("self",onode_links_self);
-   
+
+    ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest).build();
+    uri = ucb.toUri();
+    onode_links_self.put("href", uri.toString());
+    onode_links.set("self", onode_links_self);
+
 
     onode_projects.set("projects", onode_projects_list);
- 
+
     onode_root.set("_embedded", onode_projects);
     onode_root.set("_links", onode_links);
     onode_root.set("page", onode_page);
@@ -237,8 +210,10 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
   }
 
-  @GetMapping(value = "/cachedProjects" , produces=MediaType.APPLICATION_JSON_VALUE)
-  public String searchCachedProjects(@NotNull final Pageable pageable,  @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest) throws Exception {
+  @GetMapping(value = "/cachedProjects", produces = MediaType.APPLICATION_JSON_VALUE)
+  public String searchCachedProjects(@NotNull final Pageable pageable,
+      @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
+      throws Exception {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -256,80 +231,67 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     ObjectNode onode_page = objectMapper.createObjectNode();
 
 
-    List<ProjectSearchData> resultPage = cachedSearchResultService.findPaginated(pageable,searchText);
+    List<ProjectSearchData> resultPage =
+        cachedSearchResultService.findPaginated(pageable, searchText);
 
     for (ProjectSearchData project : resultPage) {
-      fillObjectNode(onode_projects_list.addObject(),project);
+      fillObjectNode(onode_projects_list.addObject(), project);
     }
 
 
 
     long totalElements = cachedSearchResultService.getTotalElements();
-    long lastPage = ((totalElements - 1l) / (long)pageable.getPageSize()) + 1l;
-    onode_page.put("size",pageable.getPageSize());
-    onode_page.put("totalElements",totalElements);
+    long lastPage = ((totalElements - 1l) / (long) pageable.getPageSize()) + 1l;
+    onode_page.put("size", pageable.getPageSize());
+    onode_page.put("totalElements", totalElements);
     onode_page.put("totalPages", lastPage);
-    onode_page.put("number",pageable.getPageNumber());
-
+    onode_page.put("number", pageable.getPageNumber());
 
 
 
     StringBuilder requestURL = new StringBuilder(httpServletRequest.getRequestURL().toString());
     String queryString = httpServletRequest.getQueryString();
 
-    if (queryString != null)
-    {
+    if (queryString != null) {
       requestURL.append('?').append(queryString).toString();
     }
-    UriComponents ucb=null;
+    UriComponents ucb = null;
     URI uri = null;
-    ucb =
-            ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-                    .replaceQueryParam("page", "0")
-                    .build();
+    ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest).replaceQueryParam("page", "0")
+        .build();
     uri = ucb.toUri();
-    onode_links_first.put("href",uri.toString());
-    onode_links.set("first",onode_links_first);
+    onode_links_first.put("href", uri.toString());
+    onode_links.set("first", onode_links_first);
 
-    ucb =
-            ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-                    .replaceQueryParam("page", String.valueOf(lastPage))
-                    .build();
+    ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+        .replaceQueryParam("page", String.valueOf(lastPage)).build();
     uri = ucb.toUri();
-    onode_links_last.put("href",uri.toString());
-    onode_links.set("last",onode_links_last);
+    onode_links_last.put("href", uri.toString());
+    onode_links.set("last", onode_links_last);
 
 
-    if(0!=pageable.getPageNumber())
-    {
-      ucb =
-              ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-                      .replaceQueryParam("page", String.valueOf((pageable.getPageNumber()+1)))
-                      .build();
+    if (0 != pageable.getPageNumber()) {
+      ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() + 1))).build();
       uri = ucb.toUri();
-      onode_links_prev.put("href",uri.toString());
-      onode_links.set("prev",onode_links_prev);
+      onode_links_prev.put("href", uri.toString());
+      onode_links.set("prev", onode_links_prev);
     }
 
 
-    if(lastPage!=pageable.getPageNumber())
-    {
-      ucb =
-              ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-                      .replaceQueryParam("page",  String.valueOf((pageable.getPageNumber()+1)))
-                      .build();
+    if (lastPage != pageable.getPageNumber()) {
+      ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
+          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() + 1))).build();
       uri = ucb.toUri();
-      onode_links_next.put("href",uri.toString());
-      onode_links.set("next",onode_links_next);
+      onode_links_next.put("href", uri.toString());
+      onode_links.set("next", onode_links_next);
     }
 
 
-    ucb =
-            ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-                    .build();
+    ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest).build();
     uri = ucb.toUri();
-    onode_links_self.put("href",uri.toString());
-    onode_links.set("self",onode_links_self);
+    onode_links_self.put("href", uri.toString());
+    onode_links.set("self", onode_links_self);
 
 
     onode_projects.set("projects", onode_projects_list);
@@ -347,7 +309,8 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   @Override
   public RepositoryLinksResource process(RepositoryLinksResource resource) {
 
-    Link link = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks())
+    Link link = ControllerLinkBuilder
+        .linkTo(ControllerLinkBuilder.methodOn(SearchController.class).allLinks())
         .withRel("search");
     resource.add(link);
     return resource;

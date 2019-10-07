@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.Executor;
@@ -49,7 +48,8 @@ public class ImportConfig implements SchedulingConfigurer {
         return nextExecutionTime.getTime();
       }
 
-      nextExecutionTime.add(Calendar.SECOND, Integer.valueOf(env.getProperty("import.delay.seconds")));
+      nextExecutionTime.add(Calendar.SECOND,
+          Integer.valueOf(env.getProperty("import.delay.seconds")));
 
       return nextExecutionTime.getTime();
     });
