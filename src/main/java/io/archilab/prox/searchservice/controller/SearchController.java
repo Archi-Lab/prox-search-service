@@ -80,9 +80,9 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     try {
 
-      Link sasa = new Link(new UriTemplate(linkToController + "/cachedProjects",
+      Link sasa = new Link(new UriTemplate(linkToController + "/sqlProjects",
           // register it as variable
-          getBaseTemplateVariables()), "cachedProjects");
+          getBaseTemplateVariables()), "sqlProjects");
 
       resource.add(sasa);
 
@@ -101,7 +101,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     onode.put("id", projectSearchData.getId());
   }
 
-  @GetMapping(value = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/sqlprojects", produces = MediaType.APPLICATION_JSON_VALUE)
   public String searchProjects(@NotNull final Pageable pageable,
       @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
       throws Exception {
@@ -193,7 +193,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(onode_root);
   }
 
-  @GetMapping(value = "/cachedProjects", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
   public String searchCachedProjects(@NotNull final Pageable pageable,
       @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
       throws Exception {

@@ -16,19 +16,21 @@ import:
     initial:
       seconds: 1
 searchNames:
-  title: title
-  supervisorName: supervisorName
-  requirements: requirements
-  shortDescription: shortDescription
-  description: description
-  tags: tags
+  status: Status
+  title: Titel
+  supervisorName: Betreuer
+  requirements: Voraussetzung
+  shortDescription: Kurzbeschreibung
+  description: Beschreibung
+  tag: Tag
 searchMultiplier:
-  tagMultiplier: 5;
-  descriptionMultiplier: 8;
-  shortDescriptionMultiplier: 2;
-  requirementsMultiplier: 4;
-  supervisorNameMultiplier: 3;
-  titleMultiplier: 2;
+  status: 1000
+  title: 50
+  supervisorName: 50
+  requirements: 5
+  shortDescription: 1
+  description: 1
+  tag: 10
 server:
   port: 9004
   use-forward-headers: true
