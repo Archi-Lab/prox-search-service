@@ -1,8 +1,28 @@
 eureka:
   client:
-    enabled: false
+    enabled: true
 keycloak:
   enabled: false
+searchNames:
+  title: title
+  supervisorName: supervisorName
+  requirements: requirements
+  shortDescription: shortDescription
+  description: description
+  tags: tags
+searchMultiplier:
+  tagMultiplier: 5
+  descriptionMultiplier: 8
+  shortDescriptionMultiplier: 2
+  requirementsMultiplier: 4
+  supervisorNameMultiplier: 3
+  titleMultiplier: 2
+import:
+  delay:
+    seconds: 10
+    initial:
+      seconds: 1
+
 server:
   port: 9004
   use-forward-headers: true
@@ -12,7 +32,8 @@ spring:
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
     driverClassName: org.postgresql.Driver
-    username: sa
+    username: search-service
+    password: search-service
   jpa:
     hibernate:
       ddl-auto: create-drop

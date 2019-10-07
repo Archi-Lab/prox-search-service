@@ -23,12 +23,12 @@ searchNames:
   description: description
   tags: tags
 searchMultiplier:
-  tagMultiplier: 5;
-  descriptionMultiplier: 8;
-  shortDescriptionMultiplier: 2;
-  requirementsMultiplier: 4;
-  supervisorNameMultiplier: 3;
-  titleMultiplier: 2;
+  tagMultiplier: 5
+  descriptionMultiplier: 8
+  shortDescriptionMultiplier: 2
+  requirementsMultiplier: 4
+  supervisorNameMultiplier: 3
+  titleMultiplier: 2
 server:
   port: 9004
   use-forward-headers: true
@@ -39,6 +39,7 @@ spring:
     password: search-service
     url: jdbc:postgresql://search-db:5432/search-db
     username: search-service
+    driverClassName: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

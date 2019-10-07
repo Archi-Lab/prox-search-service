@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
 import org.springframework.data.rest.webmvc.RepositoryRestController;
+import org.springframework.data.util.Pair;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
@@ -137,8 +138,8 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     ObjectNode onode_page = objectMapper.createObjectNode();
 
-
-    List<ProjectSearchData> resultPage = searchResultService.findPaginated(pageable, searchText);
+    Pair<List<ProjectSearchData>, Long> resultData = searchResultService.findPaginated(pageable, searchText);
+    List<ProjectSearchData> resultPage = resultData.getFirst();
 
     for (ProjectSearchData project : resultPage) {
       fillObjectNode(onode_projects_list.addObject(), project);
@@ -146,7 +147,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
 
 
-    long totalElements = searchResultService.getTotalElements();
+    long totalElements = resultData.getSecond();     //searchResultService.getTotalElements();
     long lastPage = ((totalElements - 1l) / (long) pageable.getPageSize()) + 1l;
     onode_page.put("size", pageable.getPageSize());
     onode_page.put("totalElements", totalElements);

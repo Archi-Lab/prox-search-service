@@ -8,12 +8,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import javax.sql.DataSource;
 
 @Configuration
 @Profile("!local-test-big-data")
@@ -31,6 +35,7 @@ public class ImportConfig implements SchedulingConfigurer {
   public Executor taskExecutor() {
     return Executors.newScheduledThreadPool(100);
   }
+  
 
 
   @Override

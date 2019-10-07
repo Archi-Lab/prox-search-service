@@ -19,7 +19,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 
 @Profile("!disabled-security")
 @KeycloakConfiguration
-class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
+public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

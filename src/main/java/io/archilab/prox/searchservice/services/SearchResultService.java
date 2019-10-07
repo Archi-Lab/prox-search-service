@@ -1,18 +1,23 @@
 package io.archilab.prox.searchservice.services;
 
 import java.net.URI;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.sql.RowSet;
 import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 
@@ -23,7 +28,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,9 +74,9 @@ public class SearchResultService {
   Logger log = LoggerFactory.getLogger(ProjectRepository.class);
 
 
-  public List<ProjectSearchData> findPaginated(Pageable pageable, String searchText) throws Exception {
+  public Pair<List<ProjectSearchData>, Long> findPaginated(Pageable pageable, String searchText) throws Exception {
     
-    
+    log.info(" "+projectRepository.count());
     if(projectRepository.count()==0)
     {
 //      for(int i=0;i<800;i++)
@@ -80,7 +88,7 @@ public class SearchResultService {
 //        projectRepository.save(testpp);
 //      }
       Project testpp = null;
-      testpp = new Project(UUID.randomUUID() , new ProjectName("Hallo Hallo hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
+      testpp = new Project(UUID.randomUUID() , new ProjectName("Hallo hallo hasu haus warum wort"), new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
           new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR, new ProjectRequirement("qweqwe"),
           new SupervisorName("fffffffffffff") );
       testpp.getTags().add(new TagName("tag1"));
@@ -158,6 +166,11 @@ public class SearchResultService {
       filter = descriptionFilter.filter;
     var tagsFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.tags"));
       filter = tagsFilter.filter;
+      
+    var statusFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.status"));
+      filter = tagsFilter.filter;
+      
+      log.info("rest filter "+filter);
     
     List<String> words = new ArrayList<>();
 
@@ -193,25 +206,33 @@ public class SearchResultService {
       }
       forcedTagParts=" (( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND (pt.tag_name in ("+tags+")) ) > 0) ";
     }
+    else
+    {
+      forcedTagParts =" true ";
+    }
 
- 
+    String andStatus = "";
+    if(statusFilter.hasValues)
+    {
+      ProjectStatus status_data = ProjectStatus.valueOf(statusFilter.values.get(0).toUpperCase());
+      andStatus ="and p.status = "+status_data.getValue();
+    }
+   
     String forcedTitleParts = " and " + buildWhereClause(titleFilter,"name");
     String forcedSupervisorParts = " and " + buildWhereClause(supervisorFilter,"supervisor_name");
     String forcedRequirementsParts = " and " + buildWhereClause(requirementsFilter,"requirement");
     String forcedShortDescriptionParts = " and " + buildWhereClause(shortDescriptionFilter,"short_description");
     String forcedDescriptionParts = " and " + buildWhereClause(descriptionFilter,"description");
-    
-    
-    
-    String where_part=forcedTagParts+forcedTitleParts+forcedSupervisorParts+forcedRequirementsParts+forcedShortDescriptionParts+forcedDescriptionParts;
-    
-    
-    
+   
+    String where_part=forcedTagParts+forcedTitleParts+forcedSupervisorParts
+        +forcedRequirementsParts+forcedShortDescriptionParts+forcedDescriptionParts
+        + andStatus;
+  
     
     String counting_part="";
     
     // name - title
-    if(titleFilter.hasValues)
+    if(titleFilter.hasValues || !words.isEmpty())
     {
       List<String> titleList= new ArrayList<String>();
       for (String tag_word : words) {
@@ -232,15 +253,15 @@ public class SearchResultService {
         {
           plus="+";
         }
-        titleParts+="((length(p.name) - length(replace(p.name, '"+term+"', '')) )::int  / length('"+term+"'))";
+        titleParts+=plus+" ((length(p.name) - length(replace(p.name, '"+term+"', '')) )::int  / length('"+term+"'))";
         
       }
-      counting_part+="+( "+titleParts+" *"+titleMultiplier+")";
+      counting_part+="( "+titleParts+" *"+titleMultiplier+")";
           
     }
     
     // requirement
-    if(requirementsFilter.hasValues)
+    if(requirementsFilter.hasValues || !words.isEmpty())
     {
       List<String> requirementsList= new ArrayList<String>();
       for (String tag_word : words) {
@@ -261,7 +282,7 @@ public class SearchResultService {
         {
           plus="+";
         }
-        requirementParts+="((length(p.requirement) - length(replace(p.requirement, '"+term+"', '')) )::int  / length('"+term+"'))";
+        requirementParts+=plus+" ((length(p.requirement) - length(replace(p.requirement, '"+term+"', '')) )::int  / length('"+term+"'))";
         
       }
       counting_part+="+( "+requirementParts+" *"+requirementsMultiplier+")";
@@ -269,7 +290,7 @@ public class SearchResultService {
     }
     
     // supervisor_name
-    if(supervisorFilter.hasValues)
+    if(supervisorFilter.hasValues || !words.isEmpty())
     {
       List<String> supervisorList= new ArrayList<String>();
       for (String tag_word : words) {
@@ -290,7 +311,7 @@ public class SearchResultService {
         {
           plus="+";
         }
-        supervisorNameParts+="((length(p.supervisor_name) - length(replace(p.supervisor_name, '"+term+"', '')) )::int  / length('"+term+"'))";
+        supervisorNameParts+= plus+" ((length(p.supervisor_name) - length(replace(p.supervisor_name, '"+term+"', '')) )::int  / length('"+term+"'))";
         
       }
       counting_part+="+( "+supervisorNameParts+" *"+supervisorNameMultiplier+")";
@@ -298,7 +319,7 @@ public class SearchResultService {
     }
     
     // short_description
-    if(shortDescriptionFilter.hasValues)
+    if(shortDescriptionFilter.hasValues || !words.isEmpty())
     {
       List<String> shortDescriptionList= new ArrayList<String>();
       for (String tag_word : words) {
@@ -319,7 +340,7 @@ public class SearchResultService {
         {
           plus="+";
         }
-        shortDescriptionParts+="((length(p.short_description) - length(replace(p.short_description, '"+term+"', '')) )::int  / length('"+term+"'))";
+        shortDescriptionParts+=plus+" ((length(p.short_description) - length(replace(p.short_description, '"+term+"', '')) )::int  / length('"+term+"'))";
         
       }
       counting_part+="+( "+shortDescriptionParts+" *"+shortDescriptionMultiplier+")";
@@ -327,7 +348,7 @@ public class SearchResultService {
     }
     
     // description
-    if(descriptionFilter.hasValues)
+    if(descriptionFilter.hasValues || !words.isEmpty())
     {
       List<String> descriptionList= new ArrayList<String>();
       for (String tag_word : words) {
@@ -348,7 +369,7 @@ public class SearchResultService {
         {
           plus="+";
         }
-        descriptionParts+="((length(p.description) - length(replace(p.description, '"+descTerm+"', '')) )::int  / length('"+descTerm+"'))";
+        descriptionParts+=plus+" ((length(p.description) - length(replace(p.description, '"+descTerm+"', '')) )::int  / length('"+descTerm+"'))";
         
       }
       counting_part+="+( "+descriptionParts+" *"+descriptionMultiplier+")";
@@ -357,7 +378,7 @@ public class SearchResultService {
    
     
     // tags
-    if(tagsFilter.hasValues)
+    if(tagsFilter.hasValues || !words.isEmpty())
     {
       List<String> tagsList= new ArrayList<String>();
       for (String tag_word : words) {
@@ -390,19 +411,29 @@ public class SearchResultService {
         +"  OFFSET "+ pageable.getOffset();
     
     String from_part="SELECT  p.id as id, ("+counting_part+") as priority from project p where "+where_part;
-    String full_query="Select result_query.id from ("+from_part+" ORDER BY priority desc ) as result_query "+paging_part;
+    String full_query="Select result_query.id from ("+from_part+" ORDER BY priority desc ) as result_query "+paging_part+";";
     
- 
-    List<UUID> result = jdbcTemplate.queryForObject(full_query, List.class);
+//    log.info(full_query);
+    
+    List<UUID> result = jdbcTemplate.queryForList(full_query, UUID.class);
+    
+    String full_query_no_paging="Select count(*) from ("+from_part+" ORDER BY priority desc ) as result_query ;";
+    
+    long count_data = jdbcTemplate.queryForObject(full_query_no_paging, Long.class);
+    
     
     List<ProjectSearchData> retList = new ArrayList<>();
     
     for (UUID uuid : result) 
     {
       retList.add(new ProjectSearchData(uuid));
+      log.info("id   "+uuid.toString());;
     }
+    
+
+    Pair<List<ProjectSearchData>, Long> pair = Pair.of(retList, count_data);
         
-    return retList;
+    return pair;
 
   }
   
