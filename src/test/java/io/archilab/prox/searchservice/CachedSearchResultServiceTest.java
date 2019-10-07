@@ -106,7 +106,6 @@ public class CachedSearchResultServiceTest {
 
         this.projectRepository.save(projectB);
 
-
         var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
         // Beschreibung = "Architektur" => B

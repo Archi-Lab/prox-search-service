@@ -41,7 +41,7 @@ spring:
     password: search-service
     url: jdbc:postgresql://search-db:5432/search-db
     username: search-service
-    driverClassName: org.postgresql.Driver
+    #driverClassName: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

@@ -1,6 +1,9 @@
 package io.archilab.prox.searchservice.services;
 
-import io.archilab.prox.searchservice.project.*;
+import io.archilab.prox.searchservice.project.Project;
+import io.archilab.prox.searchservice.project.ProjectRepository;
+import io.archilab.prox.searchservice.project.ProjectSearchData;
+import io.archilab.prox.searchservice.project.WeightedProject;
 import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +12,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.swing.*;
-import javax.swing.text.html.HTML;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -88,13 +88,33 @@ public class CachedSearchResultService {
     log.info(searchText);
 
     List<Filter> filters = new ArrayList<>();
-    filters.add(new Filter(env.getProperty("searchNames.status", "Status"), Integer.valueOf(env.getProperty("searchMultiplier.status", "1000")), (project -> project.getStatus().name())));
-    filters.add(new Filter(env.getProperty("searchNames.title", "Titel"), Integer.valueOf(env.getProperty("searchMultiplier.title", "50")),  (project -> project.getName().getName())));
-    filters.add(new Filter(env.getProperty("searchNames.supervisorName", "Betreuer"), Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50")), (project -> project.getSupervisorName().getSupervisorName())));
-    filters.add(new Filter(env.getProperty("searchNames.description", "Beschreibung"), Integer.valueOf(env.getProperty("searchMultiplier.description", "1")), (project -> project.getDescription().getDescription())));
-    filters.add(new Filter(env.getProperty("searchNames.shortDescription", "Kurzbeschreibung"), Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1")), (project -> project.getShortDescription().getShortDescription())));
-    filters.add(new Filter(env.getProperty("searchNames.requirements", "Voraussetzung"), Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10")), (project -> project.getRequirement().getRequirement())));
-    filters.add(new Filter(Integer.valueOf(env.getProperty("searchMultiplier.tag", "10")), env.getProperty("searchNames.tag", "Tag"), (project -> project.getTags().stream().map(t -> t.getTagName()).collect(Collectors.toList()))));
+    filters.add(new Filter(env.getProperty("searchNames.status", "Status"),
+            Integer.valueOf(env.getProperty("searchMultiplier.status", "1000")),
+            (project -> project.getStatus() == null ? "" : project.getStatus().toString())));
+
+    filters.add(new Filter(env.getProperty("searchNames.title", "Titel"),
+            Integer.valueOf(env.getProperty("searchMultiplier.title", "50")),
+            (project -> project.getName() == null ? "" : project.getName().getName())));
+
+    filters.add(new Filter(env.getProperty("searchNames.supervisorName", "Betreuer"),
+            Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50")),
+            (project -> project.getSupervisorName() == null ? "" : project.getSupervisorName().getSupervisorName())));
+
+    filters.add(new Filter(env.getProperty("searchNames.description", "Beschreibung"),
+            Integer.valueOf(env.getProperty("searchMultiplier.description", "1")),
+            (project -> project.getDescription() == null ? "" : project.getDescription().getDescription())));
+
+    filters.add(new Filter(env.getProperty("searchNames.shortDescription", "Kurzbeschreibung"),
+            Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1")),
+            (project -> project.getShortDescription() == null ? "" : project.getShortDescription().getShortDescription())));
+
+    filters.add(new Filter(env.getProperty("searchNames.requirements", "Voraussetzung"),
+            Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10")),
+            (project -> project.getRequirement() == null ? "" : project.getRequirement().getRequirement())));
+
+    filters.add(new Filter(Integer.valueOf(env.getProperty("searchMultiplier.tag", "10")),
+            env.getProperty("searchNames.tag", "Tag"),
+            (project -> project.getTags() == null ? new ArrayList<>() : project.getTags().stream().map(t -> t.getTagName()).collect(Collectors.toList()))));
 
     for (Filter filter : filters) {
       log.info(filter.filterKey + " - " + searchText);
@@ -178,6 +198,9 @@ public class CachedSearchResultService {
 
     for (String text : textValues){
 
+      if(text == null)
+        continue;
+
       text = text.toLowerCase();
 
       for (String filter : filters) {
@@ -233,10 +256,12 @@ public class CachedSearchResultService {
       Project project = weightedProject.getProject();
       int weight = weightedProject.getWeight();
 
-
       List<String> textList = getFilterValue.apply(project);
 
       for (String text : textList){
+
+        if(text == null)
+          continue;
 
         text = text.toLowerCase();
 
