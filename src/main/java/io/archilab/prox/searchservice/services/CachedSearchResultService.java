@@ -138,7 +138,8 @@ public class CachedSearchResultService {
   }
 
 
-  private FilterResult getFilter(String searchString, String key){
+  
+  public FilterResult getFilter(String searchString, String key){
     List<String> result = new ArrayList<>();
 
     var pattern = key.toLowerCase() + "\\s*=\\s*['\"](\\S*)['\"]";
@@ -213,7 +214,7 @@ public class CachedSearchResultService {
     return result;
   }
 
-  private class FilterResult
+  public class FilterResult
   {
     Boolean hasValues;
     List<String> values;
