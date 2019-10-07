@@ -71,7 +71,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
         new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM));
   }
 
-  @GetMapping(value = "/")
+  @GetMapping
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
 
