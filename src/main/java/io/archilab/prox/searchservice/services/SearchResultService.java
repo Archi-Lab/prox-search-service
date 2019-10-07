@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,6 +19,7 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +54,9 @@ public class SearchResultService {
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
+  
+  @Autowired
+  private Environment env;
   
   @Autowired
   private CachedSearchResultService cachedSearchResultService;
@@ -139,23 +145,38 @@ public class SearchResultService {
     filter = filter.toLowerCase();
     
  // Supervisor
-    var titleFilter = cachedSearchResultService.getFilter(filter, "Betreuer");
-    var supervisorFilter = cachedSearchResultService.getFilter(filter, "Betreuer");
-    var requirementsFilter = cachedSearchResultService.getFilter(filter, "Betreuer");
-    var shortDescriptionFilter = cachedSearchResultService.getFilter(filter, "Betreuer");
-    var descriptionFilter = cachedSearchResultService.getFilter(filter, "Betreuer");
-    var tagsFilter = cachedSearchResultService.getFilter(filter, "Betreuer");
+    var titleFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.title"));
+      filter = titleFilter.filter;
+    var supervisorFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.supervisorName"));
+      filter = supervisorFilter.filter;
+    var requirementsFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.requirements"));
+      filter = requirementsFilter.filter;
+    var shortDescriptionFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.shortDescription"));
+      filter = shortDescriptionFilter.filter;
+    var descriptionFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.description"));
+      filter = descriptionFilter.filter;
+    var tagsFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.tags"));
+      filter = tagsFilter.filter;
     
+    List<String> words = new ArrayList<>();
 
+    Pattern reg = Pattern.compile("(\\w+)");
+    Matcher m = reg.matcher(filter);
+    while (m.find()) {
+      words.add(m.group());
+      //log.info("Word: " + m.group());
+    }
+       
+    
+    int tagMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.tagMultiplier"));
+    int descriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.descriptionMultiplier"));
+    int shortDescriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.shortDescriptionMultiplier"));
+    int requirementsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.requirementsMultiplier"));
+    int supervisorNameMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.supervisorNameMultiplier"));
+    int titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.titleMultiplier"));
     
     
-    int tagMultiplier = 5;
-    int descriptionMultiplier = 8;
-    int shortDescriptionMultiplier=2;
-    int requirementsMultiplier=4;
-    int supervisorNameMultiplier=3;
-    int titleMultiplier=2;
-    
+    // das überarbeiten
     String where_part=""
            
 +    "(( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND (pt.tag_name in ('tag1','tag2','tag3')) ) > 0)"
@@ -285,6 +306,16 @@ public class SearchResultService {
     // tags
     if(tagsFilter.hasValues)
     {
+      List<String> tagsList= new ArrayList<String>();
+      for (String tag_word : words) {
+        tagsList.add(tag_word);
+      }
+      for (String tag_word : tagsFilter.values) {
+        if(!tagsList.contains(tag_word))
+        {
+          tagsList.add(tag_word);
+        }
+      }
       String tags = "";
       for(int i=0;i<200;i++)
       {
