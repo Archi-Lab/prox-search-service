@@ -38,6 +38,7 @@ import io.archilab.prox.searchservice.project.ProjectShortDescription;
 import io.archilab.prox.searchservice.project.ProjectStatus;
 import io.archilab.prox.searchservice.project.SupervisorName;
 import io.archilab.prox.searchservice.project.TagName;
+import io.archilab.prox.searchservice.services.CachedSearchResultService.FilterResult;
 import lombok.var;
 
 @Service
@@ -174,33 +175,35 @@ public class SearchResultService {
     int requirementsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.requirementsMultiplier"));
     int supervisorNameMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.supervisorNameMultiplier"));
     int titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.titleMultiplier"));
+       
+    String forcedTagParts ="";
+    if(tagsFilter.hasValues)
+    {
+      String tags ="";
+      for(int i=0;i<tagsFilter.values.size();i++)
+      {
+        String tagX=tagsFilter.values.get(i);
+        String comma="";
+        if(i!=0)
+        {
+          comma=",";
+        }  
+        tags+=comma+"'"+tagX+"'";
+        
+      }
+      forcedTagParts=" (( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND (pt.tag_name in ("+tags+")) ) > 0) ";
+    }
+
+ 
+    String forcedTitleParts = " and " + buildWhereClause(titleFilter,"name");
+    String forcedSupervisorParts = " and " + buildWhereClause(supervisorFilter,"supervisor_name");
+    String forcedRequirementsParts = " and " + buildWhereClause(requirementsFilter,"requirement");
+    String forcedShortDescriptionParts = " and " + buildWhereClause(shortDescriptionFilter,"short_description");
+    String forcedDescriptionParts = " and " + buildWhereClause(descriptionFilter,"description");
     
     
-    // das überarbeiten
-    String where_part=""
-           
-+    "(( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND (pt.tag_name in ('tag1','tag2','tag3')) ) > 0)"
-+   " and ( lower(p.supervisor_name) like '%s1%'"
-+   " or lower(p.supervisor_name) like '%s2%'"
-+  "      )"
-+  "  and p.status = 0"
-+"    and ("
-+"        lower(p.name) like '%t1%'"
-+"    or  lower(p.name) like '%t2%' "
-+"    )"
-+"    and ("
-+"        lower(p.short_description) like '%sd1%'"
-+"    or  lower(p.short_description) like '%sd2%' "
-+"    )"
-+"    and ("
-+"        lower(p.description) like '%d1%'"
-+"    or  lower(p.description) like '%d2%' "
-+"    )"
-+"    and ("
-+"        lower(p.requirement) like '%r1%'"
-+"    or  lower(p.requirement) like '%r2%' "
-+"    ) ";
     
+    String where_part=forcedTagParts+forcedTitleParts+forcedSupervisorParts+forcedRequirementsParts+forcedShortDescriptionParts+forcedDescriptionParts;
     
     
     
@@ -210,10 +213,20 @@ public class SearchResultService {
     // name - title
     if(titleFilter.hasValues)
     {
+      List<String> titleList= new ArrayList<String>();
+      for (String tag_word : words) {
+        titleList.add(tag_word);
+      }
+      for (String filter_word : titleFilter.values) {
+        if(!titleList.contains(filter_word))
+        {
+          titleList.add(filter_word);
+        }
+      }
       String titleParts="";
-      for(int i=0;i<200;i++)
+      for(int i=0;i<titleList.size();i++)
       {
-        String term="";
+        String term=titleList.get(i);
         String plus="";
         if(i!=0)
         {
@@ -229,10 +242,20 @@ public class SearchResultService {
     // requirement
     if(requirementsFilter.hasValues)
     {
+      List<String> requirementsList= new ArrayList<String>();
+      for (String tag_word : words) {
+        requirementsList.add(tag_word);
+      }
+      for (String filter_word : requirementsFilter.values) {
+        if(!requirementsList.contains(filter_word))
+        {
+          requirementsList.add(filter_word);
+        }
+      }
       String requirementParts="";
-      for(int i=0;i<200;i++)
+      for(int i=0;i<requirementsList.size();i++)
       {
-        String term="";
+        String term=requirementsList.get(i);
         String plus="";
         if(i!=0)
         {
@@ -248,10 +271,20 @@ public class SearchResultService {
     // supervisor_name
     if(supervisorFilter.hasValues)
     {
+      List<String> supervisorList= new ArrayList<String>();
+      for (String tag_word : words) {
+        supervisorList.add(tag_word);
+      }
+      for (String filter_word : supervisorFilter.values) {
+        if(!supervisorList.contains(filter_word))
+        {
+          supervisorList.add(filter_word);
+        }
+      }
       String supervisorNameParts="";
-      for(int i=0;i<200;i++)
+      for(int i=0;i<supervisorList.size();i++)
       {
-        String term="";
+        String term=supervisorList.get(i);
         String plus="";
         if(i!=0)
         {
@@ -267,10 +300,20 @@ public class SearchResultService {
     // short_description
     if(shortDescriptionFilter.hasValues)
     {
+      List<String> shortDescriptionList= new ArrayList<String>();
+      for (String tag_word : words) {
+        shortDescriptionList.add(tag_word);
+      }
+      for (String filter_word : shortDescriptionFilter.values) {
+        if(!shortDescriptionList.contains(filter_word))
+        {
+          shortDescriptionList.add(filter_word);
+        }
+      }
       String shortDescriptionParts="";
-      for(int i=0;i<200;i++)
+      for(int i=0;i<shortDescriptionList.size();i++)
       {
-        String term="";
+        String term=shortDescriptionList.get(i);
         String plus="";
         if(i!=0)
         {
@@ -286,10 +329,20 @@ public class SearchResultService {
     // description
     if(descriptionFilter.hasValues)
     {
+      List<String> descriptionList= new ArrayList<String>();
+      for (String tag_word : words) {
+        descriptionList.add(tag_word);
+      }
+      for (String filter_word : descriptionFilter.values) {
+        if(!descriptionList.contains(filter_word))
+        {
+          descriptionList.add(filter_word);
+        }
+      }
       String descriptionParts="";
-      for(int i=0;i<200;i++)
+      for(int i=0;i<descriptionList.size();i++)
       {
-        String descTerm="";
+        String descTerm=descriptionList.get(i);
         String plus="";
         if(i!=0)
         {
@@ -310,16 +363,16 @@ public class SearchResultService {
       for (String tag_word : words) {
         tagsList.add(tag_word);
       }
-      for (String tag_word : tagsFilter.values) {
-        if(!tagsList.contains(tag_word))
+      for (String filter_word : tagsFilter.values) {
+        if(!tagsList.contains(filter_word))
         {
-          tagsList.add(tag_word);
+          tagsList.add(filter_word);
         }
       }
       String tags = "";
-      for(int i=0;i<200;i++)
+      for(int i=0;i<tagsList.size();i++)
       {
-        String tagX="tag1";
+        String tagX=tagsList.get(i);
         String comma="";
         if(i!=0)
         {
@@ -342,60 +395,38 @@ public class SearchResultService {
  
     List<UUID> result = jdbcTemplate.queryForObject(full_query, List.class);
     
-    
-    
     List<ProjectSearchData> retList = new ArrayList<>();
     
-    
-    int pageNumber = pageable.getPageNumber();
-    int pageSize = pageable.getPageSize();
-    
-    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
-    
-    countQuery.select(criteriaBuilder
-        .count(countQuery.from(Project.class)));
-      Long count = entityManager.createQuery(countQuery)
-        .getSingleResult();
-      
-      
-      CriteriaQuery<Project> sub_query = criteriaBuilder.createQuery(Project.class);
-      Root<Project> root_pro = sub_query.from(Project.class);
-      sub_query.select(root_pro.get("id"));
-  
-
-      
-
-      CriteriaQuery<Project> criteriaQuery = criteriaBuilder
-        .createQuery(Project.class);
-  
-      Root<Project> from = criteriaQuery.from(Project.class);
-      CriteriaQuery<Project> select = criteriaQuery.select(from);
-
-      TypedQuery<Project> typedQuery = entityManager.createQuery(select);
-      
-      typedQuery.setFirstResult(pageNumber);
-      typedQuery.setMaxResults(pageSize);
-      
-      if(pageNumber < count.intValue())
-      {
-        List<Project> fooList = typedQuery.getResultList();
- 
-        for(int i=0;i<fooList.size();i++)
-        {
-          Project pt = fooList.get(i);
-          retList.add(new ProjectSearchData(pt.getId()));
-        }
+    for (UUID uuid : result) 
+    {
+      retList.add(new ProjectSearchData(uuid));
+    }
         
-      }
-      else
-      {
-        throw new Exception("page size too big");
-      }
-      
-  
-      return retList;
+    return retList;
 
+  }
+  
+  private String buildWhereClause(FilterResult filter, String dbFieldName)
+  {
+    String queryPart="";
+    if(filter.hasValues)
+    {
+      for (int i=0;i<filter.values.size();i++) 
+      {      
+        String part = filter.values.get(i);    
+        if(i!=0)
+        {
+          queryPart+=" or ";
+        }
+        queryPart+=" lower(p."+dbFieldName+") like '%"+part+"%' ";
+      }
+      queryPart= "("+queryPart+")";
+    }
+    else
+    {
+      queryPart=" TRUE ";
+    }
+    return queryPart;
   }
 
 
