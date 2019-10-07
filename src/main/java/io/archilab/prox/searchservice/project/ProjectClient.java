@@ -5,14 +5,12 @@ import com.netflix.discovery.EurekaClient;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.hateoas.*;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.hateoas.mvc.TypeReferences;
 import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -30,9 +28,15 @@ public class ProjectClient {
     this.eurekaClient = eurekaClient;
   }
 
-  private String serviceUrl() {
+  private String projectServiceUrl() {
     InstanceInfo instance = this.eurekaClient.getNextServerFromEureka("project-service", false);
     String url = instance.getHomePageUrl() + "projects/search";
+    return url;
+  }
+
+  private String tagServiceUrl() {
+    InstanceInfo instance = this.eurekaClient.getNextServerFromEureka("tag-service", false);
+    String url = instance.getHomePageUrl() + "tagCollections";
     return url;
   }
 
@@ -48,13 +52,12 @@ public class ProjectClient {
   }
 
   public List<Project> getProjects(Date startTime) {
-    Traverson traverson = this.getTraversonInstance(this.serviceUrl());
-
+    Traverson traverson = this.getTraversonInstance(this.projectServiceUrl());
+    String tagServiceURL = this.tagServiceUrl();
 
     if (traverson == null) {
       return null;
     }
-
 
     List<Project> projects = new ArrayList<>();
 
@@ -81,20 +84,13 @@ public class ProjectClient {
           project.setId(UUID.fromString(id_uuid));
         }
 
-
-
         // Tags
-        Link tagCollection = projectResource.getLink("tagCollection");
-
-        Traverson tagCollectionTraverson = this.getTraversonInstance(tagCollection.getHref());
-
         if (traverson != null) {
-
-          final Resources<Resource<TagName>> tagResources = tagCollectionTraverson.follow("self")
+          Traverson tagTraverson = this.getTraversonInstance(tagServiceURL + "/" + project.getId());
+          final Resources<Resource<TagName>> tagResources = tagTraverson.follow("tags")
               .toObject(new TypeReferences.ResourcesType<Resource<TagName>>() {});
 
           for (Resource<TagName> moduleResource : tagResources.getContent()) {
-
             TagName tag = moduleResource.getContent();
 
             project.getTags().add(tag);
