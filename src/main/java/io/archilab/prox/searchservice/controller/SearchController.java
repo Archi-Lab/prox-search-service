@@ -1,54 +1,38 @@
 package io.archilab.prox.searchservice.controller;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
-import io.archilab.prox.searchservice.services.CachedSearchResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.rest.core.annotation.RestResource;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
-import org.springframework.data.rest.webmvc.RepositoryRestController;
 import org.springframework.data.util.Pair;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.ResourceProcessor;
-import org.springframework.hateoas.ResourceSupport;
 import org.springframework.hateoas.TemplateVariable;
 import org.springframework.hateoas.TemplateVariables;
 import org.springframework.hateoas.UriTemplate;
-import org.springframework.hateoas.mvc.BasicLinkBuilder;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+
+import java.net.URI;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.archilab.prox.searchservice.project.Project;
-import io.archilab.prox.searchservice.project.ProjectRepository;
-import io.archilab.prox.searchservice.project.ProjectSearchData;
-import io.archilab.prox.searchservice.services.SearchResultService;
 
+import io.archilab.prox.searchservice.project.ProjectSearchData;
+import io.archilab.prox.searchservice.services.CachedSearchResultService;
+import io.archilab.prox.searchservice.services.SearchResultService;
 
 
 @RestController
@@ -97,9 +81,9 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     try {
 
-      Link sasa = new Link(new UriTemplate(linkToController + "/cachedProjects",
+      Link sasa = new Link(new UriTemplate(linkToController + "/sqlProjects",
           // register it as variable
-          getBaseTemplateVariables()), "cachedProjects");
+          getBaseTemplateVariables()), "sqlProjects");
 
       resource.add(sasa);
 
@@ -118,7 +102,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     onode.put("id", projectSearchData.getId());
   }
 
-  @GetMapping(value = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/sqlprojects", produces = MediaType.APPLICATION_JSON_VALUE)
   public String searchProjects(@NotNull final Pageable pageable,
       @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
       throws Exception {
@@ -138,8 +122,10 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     ObjectNode onode_page = objectMapper.createObjectNode();
 
+
     Pair<List<ProjectSearchData>, Long> resultData = searchResultService.findPaginated(pageable, searchText);
     List<ProjectSearchData> resultPage = resultData.getFirst();
+
 
     for (ProjectSearchData project : resultPage) {
       fillObjectNode(onode_projects_list.addObject(), project);
@@ -147,7 +133,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
 
 
-    long totalElements = resultData.getSecond();     //searchResultService.getTotalElements();
+    long totalElements = resultData.getSecond() ;  //searchResultService.getTotalElements();
     long lastPage = ((totalElements - 1l) / (long) pageable.getPageSize()) + 1l;
     onode_page.put("size", pageable.getPageSize());
     onode_page.put("totalElements", totalElements);
@@ -207,11 +193,10 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     onode_root.set("_links", onode_links);
     onode_root.set("page", onode_page);
 
-    return onode_root.toString();
-
+    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(onode_root);
   }
 
-  @GetMapping(value = "/cachedProjects", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
   public String searchCachedProjects(@NotNull final Pageable pageable,
       @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
       throws Exception {
@@ -301,11 +286,8 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     onode_root.set("_links", onode_links);
     onode_root.set("page", onode_page);
 
-    return onode_root.toString();
-
+    return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(onode_root);
   }
-
-
 
   @Override
   public RepositoryLinksResource process(RepositoryLinksResource resource) {

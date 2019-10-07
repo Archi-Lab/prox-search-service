@@ -164,7 +164,7 @@ public class SearchResultService {
       filter = shortDescriptionFilter.filter;
     var descriptionFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.description"));
       filter = descriptionFilter.filter;
-    var tagsFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.tags"));
+    var tagsFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.tag"));
       filter = tagsFilter.filter;
       
     var statusFilter = cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.status"));
@@ -182,12 +182,12 @@ public class SearchResultService {
     }
        
     
-    int tagMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.tagMultiplier"));
-    int descriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.descriptionMultiplier"));
-    int shortDescriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.shortDescriptionMultiplier"));
-    int requirementsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.requirementsMultiplier"));
-    int supervisorNameMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.supervisorNameMultiplier"));
-    int titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.titleMultiplier"));
+    int tagMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.tag"));
+    int descriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.description"));
+    int shortDescriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.shortDescription"));
+    int requirementsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.requirements"));
+    int supervisorNameMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.supervisorName"));
+    int titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.title"));
        
     String forcedTagParts ="";
     if(tagsFilter.hasValues)
