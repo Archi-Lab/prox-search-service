@@ -52,11 +52,21 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
         new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM));
   }
 
+  
+  // TODO   fix tests
+  //        secure analysis fo search string return if usable   return if empty or bad
+  //        test speed comparison
+  //        database fields all not null
+
+
+  
+  
   @GetMapping
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
 
-
+    
+ 
 
     // UriTemplate esd = new UriTemplate();
     final String linkToController = ControllerLinkBuilder.linkTo(SearchController.class).toString();

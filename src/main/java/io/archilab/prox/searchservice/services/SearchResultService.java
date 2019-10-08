@@ -73,84 +73,6 @@ public class SearchResultService {
   public Pair<List<ProjectSearchData>, Long> findPaginated(Pageable pageable, String searchText)
       throws Exception {
 
-    log.info(" " + projectRepository.count());
-    if (projectRepository.count() == 0) {
-      // for(int i=0;i<800;i++)
-      // {
-      // Project testpp = new Project(UUID.randomUUID() , new ProjectName(String.valueOf(i)), new
-      // ProjectShortDescription("sfeeeeeeeeee"),
-      // new ProjectDescription("eeeff"), ProjectStatus.VERFÜGBAR, new
-      // ProjectRequirement("fsertgr5z5z5zrr5zr5zr5zr5"),
-      // new SupervisorName("fffffffffffff") );
-      // testpp.getTags().add(e)
-      // projectRepository.save(testpp);
-      // }
-      Project testpp = null;
-      testpp = new Project(UUID.randomUUID(), new ProjectName("Hallo hallo hasu haus warum wort"),
-          new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
-          new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR,
-          new ProjectRequirement("qweqwe"), new SupervisorName("fffffffffffff"));
-      testpp.getTags().add(new TagName("tag1"));
-      testpp.getTags().add(new TagName("tag2"));
-      testpp.getTags().add(new TagName("tag3"));
-      testpp.getTags().add(new TagName("tag4"));
-      projectRepository.save(testpp);
-
-      testpp = new Project(UUID.randomUUID(),
-          new ProjectName("wer wer wer wer Hallo wir hasu haus warum wort"),
-          new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
-          new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR,
-          new ProjectRequirement("qweqwe"), new SupervisorName("fffffffffffff"));
-      testpp.getTags().add(new TagName("tag1"));
-      testpp.getTags().add(new TagName("tag2"));
-      testpp.getTags().add(new TagName("tag3"));
-      testpp.getTags().add(new TagName("tag4"));
-      projectRepository.save(testpp);
-
-      testpp = new Project(UUID.randomUUID(),
-          new ProjectName("Hallo wir wir wir wir wir wir hasu haus warum wort"),
-          new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
-          new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR,
-          new ProjectRequirement("qweqwe"), new SupervisorName("fffffffffffff"));
-      testpp.getTags().add(new TagName("tag1"));
-      testpp.getTags().add(new TagName("tag2"));
-      testpp.getTags().add(new TagName("tttt"));
-      testpp.getTags().add(new TagName("tt22"));
-      projectRepository.save(testpp);
-
-      testpp = new Project(UUID.randomUUID(),
-          new ProjectName("Hallo Hallo wer wie wo wer wie wo hasu haus warum wort"),
-          new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
-          new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR,
-          new ProjectRequirement("qweqwe"), new SupervisorName("fffffffffffff"));
-      testpp.getTags().add(new TagName("tttt"));
-      testpp.getTags().add(new TagName("tt22"));
-      testpp.getTags().add(new TagName("tt33"));
-      testpp.getTags().add(new TagName("tt44"));
-      projectRepository.save(testpp);
-
-      testpp = new Project(UUID.randomUUID(), new ProjectName(" Hallo hasu  warum wort"),
-          new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
-          new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR,
-          new ProjectRequirement("qweqwe"), new SupervisorName("fffffffffffff"));
-      testpp.getTags().add(new TagName("tag1"));
-      testpp.getTags().add(new TagName("tag2"));
-      testpp.getTags().add(new TagName("tag3"));
-      testpp.getTags().add(new TagName("tag4"));
-      projectRepository.save(testpp);
-
-      testpp = new Project(UUID.randomUUID(), new ProjectName("Hallo   haus warum "),
-          new ProjectShortDescription(" wiese baum bohne see wasser wasser wasser sonne"),
-          new ProjectDescription("ewqewq"), ProjectStatus.VERFÜGBAR,
-          new ProjectRequirement("qweqwe"), new SupervisorName("fffffffffffff"));
-      testpp.getTags().add(new TagName("tag1"));
-      testpp.getTags().add(new TagName("tag3"));
-      projectRepository.save(testpp);
-
-      log.info("new data");
-
-    }
-
 
 
     String filter = searchText;
@@ -184,7 +106,7 @@ public class SearchResultService {
         cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.status"));
     filter = tagsFilter.filter;
 
-    log.info("rest filter " + filter);
+//    log.info("rest filter " + filter);
 
     List<String> words = new ArrayList<>();
 
@@ -412,7 +334,7 @@ public class SearchResultService {
     String full_query = "Select result_query.id from (" + from_part
         + " ORDER BY priority desc ) as result_query " + paging_part + ";";
 
-    // log.info(full_query);
+//    log.info(full_query);
 
     List<UUID> result = jdbcTemplate.queryForList(full_query, UUID.class);
 
@@ -426,7 +348,7 @@ public class SearchResultService {
 
     for (UUID uuid : result) {
       retList.add(new ProjectSearchData(uuid));
-      log.info("id   " + uuid.toString());;
+//      log.info("id   " + uuid.toString());;
     }
 
 
