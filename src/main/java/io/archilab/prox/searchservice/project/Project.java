@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.*;
+import javax.transaction.Transactional;
 import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,6 +21,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Getter
 @ToString(callSuper = true)
 @NoArgsConstructor
+@Transactional
 public class Project extends AbstractEntity {
 
   @Setter
@@ -46,8 +48,9 @@ public class Project extends AbstractEntity {
   @JsonUnwrapped
   private SupervisorName supervisorName;
 
+  // Eager loading is important for the CachedSearchService
   @Getter
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   private List<TagName> tags = new ArrayList<>();
 
   @Basic
@@ -71,5 +74,18 @@ public class Project extends AbstractEntity {
     this.description = description;
     this.status = status;
     this.supervisorName = supervisorName;
+  }
+
+  public List<String> GetTagNames()
+  {
+    List<String> names = new ArrayList<>();
+
+    if(this.tags == null)
+      return names;
+
+    for (TagName tagName : this.tags)
+      names.add(tagName.getTagName());
+
+    return names;
   }
 }

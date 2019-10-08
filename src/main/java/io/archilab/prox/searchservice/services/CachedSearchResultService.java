@@ -50,32 +50,6 @@ public class CachedSearchResultService {
     log.info("SearchService: Projects loaded");
   }
 
-  public Long getTotalElements() {
-    return projectRepository.count();
-  }
-
-  public List<ProjectSearchData> findPaginated(Pageable pageable, String searchText)
-      throws Exception {
-
-    int pageNumber = pageable.getPageNumber();
-    int pageSize = pageable.getPageSize();
-    var start = pageNumber * pageSize;
-
-    var projects = this.getProjects(searchText);
-
-    List<ProjectSearchData> retList = new ArrayList<>();
-
-    for (int i = start; i < start + pageSize && i < projects.size(); i++) {
-      var project = projects.get(i);
-      var projectData = new ProjectSearchData(project.getId());
-      retList.add(projectData);
-    }
-
-    log.info("Returned Projects: " + retList.size());
-
-    return retList;
-  }
-
   public List<Project> getProjects(String searchText) {
     if (searchText == null || searchText.length() < 2)
       return this.cache;
@@ -88,41 +62,34 @@ public class CachedSearchResultService {
 
     List<Filter> filters = new ArrayList<>();
     filters.add(new Filter(env.getProperty("searchNames.status", "Status"),
-        Integer.valueOf(env.getProperty("searchMultiplier.status", "1000")),
-        (project -> project.getStatus() == null ? "" : project.getStatus().toString())));
+            Integer.valueOf(env.getProperty("searchMultiplier.status", "1000")),
+            (project -> project.getStatus() == null ? "" : project.getStatus().toString())));
 
     filters.add(new Filter(env.getProperty("searchNames.title", "Titel"),
-        Integer.valueOf(env.getProperty("searchMultiplier.title", "50")),
-        (project -> project.getName() == null ? "" : project.getName().getName())));
+            Integer.valueOf(env.getProperty("searchMultiplier.title", "50")),
+            (project -> project.getName() == null ? "" : project.getName().getName())));
 
     filters.add(new Filter(env.getProperty("searchNames.supervisorName", "Betreuer"),
-        Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50")),
-        (project -> project.getSupervisorName() == null ? ""
-            : project.getSupervisorName().getSupervisorName())));
+            Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50")),
+            (project -> project.getSupervisorName() == null ? "" : project.getSupervisorName().getSupervisorName())));
 
     filters.add(new Filter(env.getProperty("searchNames.description", "Beschreibung"),
-        Integer.valueOf(env.getProperty("searchMultiplier.description", "1")),
-        (project -> project.getDescription() == null ? ""
-            : project.getDescription().getDescription())));
+            Integer.valueOf(env.getProperty("searchMultiplier.description", "1")),
+            (project -> project.getDescription() == null ? "" : project.getDescription().getDescription())));
 
     filters.add(new Filter(env.getProperty("searchNames.shortDescription", "Kurzbeschreibung"),
-        Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1")),
-        (project -> project.getShortDescription() == null ? ""
-            : project.getShortDescription().getShortDescription())));
+            Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1")),
+            (project -> project.getShortDescription() == null ? "" : project.getShortDescription().getShortDescription())));
 
     filters.add(new Filter(env.getProperty("searchNames.requirements", "Voraussetzung"),
-        Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10")),
-        (project -> project.getRequirement() == null ? ""
-            : project.getRequirement().getRequirement())));
+            Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10")),
+            (project -> project.getRequirement() == null ? "" : project.getRequirement().getRequirement())));
 
     filters.add(new Filter(Integer.valueOf(env.getProperty("searchMultiplier.tag", "10")),
-        env.getProperty("searchNames.tag", "Tag"),
-        (project -> project.getTags() == null ? new ArrayList<>()
-            : project.getTags().stream().map(t -> t.getTagName()).collect(Collectors.toList()))));
+            env.getProperty("searchNames.tag", "Tag"),
+            (project -> project.GetTagNames())));
 
     for (Filter filter : filters) {
-      log.info(filter.filterKey + " - " + searchText);
-
       var filterValues = this.getFilter(searchText, filter.filterKey);
       if (filterValues.hasValues) {
         result = new ArrayList<>(this.filterBy(result, filterValues.values, filter.getFilterValue));
@@ -154,9 +121,8 @@ public class CachedSearchResultService {
 
     log.info("result: " + weighted);
 
-    if (weighted.stream().anyMatch(p -> p.getWeight() > 0)) {
-      return weighted.stream().filter(p -> p.getWeight() > 0).map(p -> p.getProject())
-          .collect(Collectors.toList());
+    if(weighted.stream().anyMatch(p -> p.getWeight() > 0)){
+      return weighted.stream().filter(p -> p.getWeight() > 0).map(p -> p.getProject()).collect(Collectors.toList());
     }
 
     return weighted.stream().map(p -> p.getProject()).collect(Collectors.toList());
@@ -182,8 +148,7 @@ public class CachedSearchResultService {
     return new FilterResult(result, searchString);
   }
 
-  private List<Project> filterBy(List<Project> projects, List<String> filters,
-      Function<Project, List<String>> getFilterValue) {
+  private List<Project> filterBy(List<Project> projects, List<String> filters, Function<Project, List<String>> getFilterValue) {
 
     var result = new ArrayList<Project>();
 
@@ -191,21 +156,20 @@ public class CachedSearchResultService {
 
       boolean canAdd = this.filterProject(project, filters, getFilterValue);
 
-      if (canAdd)
+      if(canAdd)
         result.add(project);
     }
 
     return result;
   }
 
-  private boolean filterProject(Project project, List<String> filters,
-      Function<Project, List<String>> getFilterValue) {
+  private boolean filterProject(Project project, List<String> filters, Function<Project, List<String>> getFilterValue){
 
     List<String> textValues = getFilterValue.apply(project);
 
-    for (String text : textValues) {
+    for (String text : textValues){
 
-      if (text == null)
+      if(text == null)
         continue;
 
       text = text.toLowerCase();
@@ -258,25 +222,25 @@ public class CachedSearchResultService {
 
 
   // Weight
-  private void updateWeight(List<WeightedProject> projects, List<String> words, int weightValue,
-      Function<Project, List<String>> getFilterValue) {
+  private void updateWeight(List<WeightedProject> projects, List<String> words, int weightValue, Function<Project, List<String>> getFilterValue) {
     for (WeightedProject weightedProject : projects) {
       Project project = weightedProject.getProject();
       int weight = weightedProject.getWeight();
 
       List<String> textList = getFilterValue.apply(project);
 
-      for (String text : textList) {
+      for (String text : textList){
 
-        if (text == null)
+        if(text == null)
           continue;
 
         text = text.toLowerCase();
 
         for (String word : words) {
-          if (text == word) {
+          if(text == word){
             weight += weightValue * 3;
-          } else if (text.contains(word)) {
+          }
+          else if (text.contains(word)) {
             weight += weightValue;
           }
         }

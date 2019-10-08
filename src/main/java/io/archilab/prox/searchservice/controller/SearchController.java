@@ -1,5 +1,6 @@
 package io.archilab.prox.searchservice.controller;
 
+import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponents;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
@@ -224,23 +226,31 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     ObjectNode onode_page = objectMapper.createObjectNode();
 
 
-    List<ProjectSearchData> resultPage =
-        cachedSearchResultService.findPaginated(pageable, searchText);
+    int pageNumber = pageable.getPageNumber();
+    int pageSize = pageable.getPageSize();
+    var start = pageNumber * pageSize;
 
-    for (ProjectSearchData project : resultPage) {
-      fillObjectNode(onode_projects_list.addObject(), project);
+    var projects = cachedSearchResultService.getProjects(searchText);
+
+    for (int i = start; i < start + pageSize && i < projects.size(); i++) {
+      var project = projects.get(i);
+      var projectData = new ProjectSearchData(project.getId());
+
+      fillObjectNode(onode_projects_list.addObject(), projectData);
     }
 
+    long totalElements = projects.size();
+    long size = (long) pageable.getPageSize();
+    long lastPage = Math.max (1, totalElements / size);
 
+    log.info("total: " + totalElements);
+    log.info("size: " + size);
+    log.info("lastPage: " + lastPage);
 
-    long totalElements = cachedSearchResultService.getTotalElements();
-    long lastPage = ((totalElements - 1l) / (long) pageable.getPageSize()) + 1l;
-    onode_page.put("size", pageable.getPageSize());
+    onode_page.put("size", size);
     onode_page.put("totalElements", totalElements);
     onode_page.put("totalPages", lastPage);
     onode_page.put("number", pageable.getPageNumber());
-
-
 
     StringBuilder requestURL = new StringBuilder(httpServletRequest.getRequestURL().toString());
     String queryString = httpServletRequest.getQueryString();
