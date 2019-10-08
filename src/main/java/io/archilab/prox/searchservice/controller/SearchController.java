@@ -19,17 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponents;
-
 import java.net.URI;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
 import io.archilab.prox.searchservice.services.SearchResultService;
@@ -123,7 +119,8 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     ObjectNode onode_page = objectMapper.createObjectNode();
 
 
-    Pair<List<ProjectSearchData>, Long> resultData = searchResultService.findPaginated(pageable, searchText);
+    Pair<List<ProjectSearchData>, Long> resultData =
+        searchResultService.findPaginated(pageable, searchText);
     List<ProjectSearchData> resultPage = resultData.getFirst();
 
 
@@ -133,7 +130,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
 
 
-    long totalElements = resultData.getSecond() ;  //searchResultService.getTotalElements();
+    long totalElements = resultData.getSecond(); // searchResultService.getTotalElements();
     long lastPage = ((totalElements - 1l) / (long) pageable.getPageSize()) + 1l;
     onode_page.put("size", pageable.getPageSize());
     onode_page.put("totalElements", totalElements);

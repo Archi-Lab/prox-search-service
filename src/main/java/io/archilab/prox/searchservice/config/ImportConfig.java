@@ -16,7 +16,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 import javax.sql.DataSource;
 
 @Configuration
@@ -35,7 +34,7 @@ public class ImportConfig implements SchedulingConfigurer {
   public Executor taskExecutor() {
     return Executors.newScheduledThreadPool(100);
   }
-  
+
 
 
   @Override
