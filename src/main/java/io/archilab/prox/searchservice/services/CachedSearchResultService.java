@@ -2,21 +2,16 @@ package io.archilab.prox.searchservice.services;
 
 import io.archilab.prox.searchservice.project.Project;
 import io.archilab.prox.searchservice.project.ProjectRepository;
-import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.project.WeightedProject;
 import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,7 +74,6 @@ public class CachedSearchResultService {
     String key = "";
     int weight = 1;
     FilterResult filterResReturn;
-    
 
     key = env.getProperty("searchNames.status", "Status");
     weight =  Integer.valueOf(env.getProperty("searchMultiplier.status", "1000"));
@@ -189,11 +183,17 @@ public class CachedSearchResultService {
 
     List<String> words = new ArrayList<>();
 
+
+
     Pattern reg = Pattern.compile("(\\w+)");
     Matcher m = reg.matcher(searchText);
     while (m.find()) {
       words.add(m.group());
       log.info("Word: " + m.group());
+    }
+
+    if(words.size() == 0) {
+        return result;
     }
 
     // Weight
@@ -208,18 +208,14 @@ public class CachedSearchResultService {
 
     log.info("result: " + weighted);
 
-    if(weighted.stream().anyMatch(p -> p.getWeight() > 0)){
-      return weighted.stream().filter(p -> p.getWeight() > 0).map(p -> p.getProject()).collect(Collectors.toList());
-    }
-
-    return weighted.stream().map(p -> p.getProject()).collect(Collectors.toList());
+    return weighted.stream().filter(p -> p.getWeight() > 0).map(p -> p.getProject()).collect(Collectors.toList());
   }
 
   // Filter
   public FilterResult getFilter(String searchString, String key) {
     List<String> result = new ArrayList<>();
 
-    var pattern = key.toLowerCase() + "\\s*=\\s*['\"](.*)['\"]";
+    var pattern = key.toLowerCase() + "\\s*=\\s*['\"](.*?)['\"]";
 
     Pattern pairRegex = Pattern.compile(pattern);
     Matcher matcher = pairRegex.matcher(searchString.toLowerCase());
@@ -250,25 +246,32 @@ public class CachedSearchResultService {
     return result;
   }
 
-  private boolean filterProject(Project project, List<String> filters, Function<Project, List<String>> getFilterValue){
+  private boolean filterProject(Project project, List<String> filters, Function<Project, List<String>> getFilterValue) {
 
-    List<String> textValues = getFilterValue.apply(project);
+      List<String> textValues = getFilterValue.apply(project);
 
-    for (String text : textValues){
-
-      if(text == null)
-        continue;
-
-      text = text.toLowerCase();
 
       for (String filter : filters) {
-        if (text.contains(filter)) {
-          return true;
-        }
-      }
-    }
 
-    return false;
+          boolean containsFilter = false;
+
+          for (String text : textValues) {
+
+              if (text == null)
+                  continue;
+
+              text = text.toLowerCase();
+
+              if (text.contains(filter)) {
+                  containsFilter = true;
+              }
+          }
+
+          if (containsFilter == false)
+              return false;
+      }
+
+      return true;
   }
 
   public class FilterResult {
