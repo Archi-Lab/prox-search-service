@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,95 +44,85 @@ import io.archilab.prox.searchservice.project.ProjectStatus;
 import io.archilab.prox.searchservice.project.SupervisorName;
 import io.archilab.prox.searchservice.project.TagName;
 import io.archilab.prox.searchservice.services.CachedSearchResultService.FilterResult;
+import io.archilab.prox.searchservice.services.CachedSearchResultService.ResultList;
 import lombok.var;
+import java.sql.Types;
 
 @Service
 @Transactional
 
 public class SearchResultService {
 
-  @Autowired
-  private ProjectRepository projectRepository;
-
   @PersistenceContext
   private EntityManager entityManager;
 
 
-  @Autowired
+//  @Autowired
   private JdbcTemplate jdbcTemplate;
 
-  @Autowired
+//  @Autowired
   private Environment env;
 
-  @Autowired
+//  @Autowired
   private CachedSearchResultService cachedSearchResultService;
-
+  
+  private final String status;
+  private final String title;
+  private final String supervisorName;
+  private final String description;
+  private final String shortDescription;
+  private final String requirements;
+  private final String tags;
+  private final String words;
 
   Logger log = LoggerFactory.getLogger(ProjectRepository.class);
+  
+  public SearchResultService(JdbcTemplate jdbcTemplate,Environment env, CachedSearchResultService cachedSearchResultService)
+  {
+    this.jdbcTemplate=jdbcTemplate;
+    this.env=env;
+    this.cachedSearchResultService=cachedSearchResultService;
+    
+    status = env.getProperty("searchNames.status", "Status");
+    
+    title = env.getProperty("searchNames.title", "Titel");
+    
+    supervisorName = env.getProperty("searchNames.supervisorName", "Betreuer");
+    
+    description = env.getProperty("searchNames.description", "Beschreibung");
+    
+    shortDescription = env.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
 
+    requirements = env.getProperty("searchNames.requirements", "Voraussetzung");
+    
+    tags = env.getProperty("searchNames.tag", "Tag");
+    
+    words = "Words";
+    
+  }
 
   public Pair<List<ProjectSearchData>, Long> findPaginated(Pageable pageable, String searchText)
       throws Exception {
-
-
-
-    String filter = searchText;
-
-    if (filter == null || filter.length() < 2)
+    
+    
+    Map<String, ResultList> resultList = cachedSearchResultService.prepareFilterLists(searchText);
+    
+    if(resultList == null)
+    {
       throw new Exception("bad search string");
-
-    filter = filter.toLowerCase();
-
-    // Supervisor
-    var titleFilter =
-        cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.title"));
-    filter = titleFilter.filter;
-    var supervisorFilter =
-        cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.supervisorName"));
-    filter = supervisorFilter.filter;
-    var requirementsFilter =
-        cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.requirements"));
-    filter = requirementsFilter.filter;
-    var shortDescriptionFilter = cachedSearchResultService.getFilter(filter,
-        env.getProperty("searchNames.shortDescription"));
-    filter = shortDescriptionFilter.filter;
-    var descriptionFilter =
-        cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.description"));
-    filter = descriptionFilter.filter;
-    var tagsFilter =
-        cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.tag"));
-    filter = tagsFilter.filter;
-
-    var statusFilter =
-        cachedSearchResultService.getFilter(filter, env.getProperty("searchNames.status"));
-    filter = tagsFilter.filter;
-
-//    log.info("rest filter " + filter);
-
-    List<String> words = new ArrayList<>();
-
-    Pattern reg = Pattern.compile("(\\w+)");
-    Matcher m = reg.matcher(filter);
-    while (m.find()) {
-      words.add(m.group());
-      // log.info("Word: " + m.group());
     }
 
-
-    int tagMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.tag"));
-    int descriptionMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.description"));
-    int shortDescriptionMultiplier =
-        Integer.valueOf(env.getProperty("searchMultiplier.shortDescription"));
-    int requirementsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.requirements"));
-    int supervisorNameMultiplier =
-        Integer.valueOf(env.getProperty("searchMultiplier.supervisorName"));
-    int titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.title"));
+    List<SqlParameterValue> paramValues = new ArrayList<>();
+    
+    String returnParts="";
+    
+//    SqlParameterValue s = new SqlParameterValue(java.sql.Types.VARCHAR, "d");
 
     String forcedTagParts = "";
-    if (tagsFilter.hasValues) {
+    if (!resultList.get(this.tags).values.isEmpty()) {
       String tags = "";
-      for (int i = 0; i < tagsFilter.values.size(); i++) {
-        String tagX = tagsFilter.values.get(i);
+      for (int i = 0; i < resultList.get(this.tags).values.size(); i++) {
+        String tagX = resultList.get(this.tags).values.get(i);
         String comma = "";
         if (i != 0) {
           comma = ",";
@@ -147,17 +138,18 @@ public class SearchResultService {
     }
 
     String andStatus = "";
-    if (statusFilter.hasValues) {
-      ProjectStatus status_data = ProjectStatus.valueOf(statusFilter.values.get(0).toUpperCase());
+    if (!resultList.get(this.status).values.isEmpty()) {
+      
+      ProjectStatus status_data = ProjectStatus.valueOf(resultList.get(this.status).values.get(0).toUpperCase());
       andStatus = "and p.status = " + status_data.getValue();
     }
 
-    String forcedTitleParts = " and " + buildWhereClause(titleFilter, "name");
-    String forcedSupervisorParts = " and " + buildWhereClause(supervisorFilter, "supervisor_name");
-    String forcedRequirementsParts = " and " + buildWhereClause(requirementsFilter, "requirement");
+    String forcedTitleParts = " and " + buildWhereClause(resultList.get(this.title), "name");
+    String forcedSupervisorParts = " and " + buildWhereClause(resultList.get(this.supervisorName), "supervisor_name");
+    String forcedRequirementsParts = " and " + buildWhereClause(resultList.get(this.requirements), "requirement");
     String forcedShortDescriptionParts =
-        " and " + buildWhereClause(shortDescriptionFilter, "short_description");
-    String forcedDescriptionParts = " and " + buildWhereClause(descriptionFilter, "description");
+        " and " + buildWhereClause(resultList.get(this.shortDescription), "short_description");
+    String forcedDescriptionParts = " and " + buildWhereClause(resultList.get(this.description), "description");
 
     String where_part =
         forcedTagParts + forcedTitleParts + forcedSupervisorParts + forcedRequirementsParts
@@ -165,147 +157,35 @@ public class SearchResultService {
 
 
     String counting_part = "";
+    
+    counting_part= " 0 ";  // wichtig, wiel die Funktion  prepareSelectStringCount immer am Anfang ein plus einbaut.
 
-    // name - title
-    if (titleFilter.hasValues || !words.isEmpty()) {
-      List<String> titleList = new ArrayList<String>();
-      for (String tag_word : words) {
-        titleList.add(tag_word);
-      }
-      for (String filter_word : titleFilter.values) {
-        if (!titleList.contains(filter_word)) {
-          titleList.add(filter_word);
-        }
-      }
-      String titleParts = "";
-      for (int i = 0; i < titleList.size(); i++) {
-        String term = titleList.get(i);
-        String plus = "";
-        if (i != 0) {
-          plus = "+";
-        }
-        titleParts += plus + " ((length(p.name) - length(replace(p.name, '" + term
-            + "', '')) )::int  / length('" + term + "'))";
+    returnParts = prepareSelectStringCount("name",resultList.get(this.title),resultList.get(this.words).values,paramValues);
+    counting_part+=returnParts;
+    
+    returnParts = prepareSelectStringCount("requirement",resultList.get(this.requirements),resultList.get(this.words).values,paramValues);
+    counting_part+=returnParts;
+    
+    returnParts = prepareSelectStringCount("supervisor_name",resultList.get(this.supervisorName),resultList.get(this.words).values,paramValues);
+    counting_part+=returnParts;
+    
+    returnParts = prepareSelectStringCount("short_description",resultList.get(this.shortDescription),resultList.get(this.words).values,paramValues);
+    counting_part+=returnParts;
 
-      }
-      counting_part += "( " + titleParts + " *" + titleMultiplier + ")";
+    
+    returnParts = prepareSelectStringCount("description",resultList.get(this.description),resultList.get(this.words).values,paramValues);
+    counting_part+=returnParts;
 
-    }
-
-    // requirement
-    if (requirementsFilter.hasValues || !words.isEmpty()) {
-      List<String> requirementsList = new ArrayList<String>();
-      for (String tag_word : words) {
-        requirementsList.add(tag_word);
-      }
-      for (String filter_word : requirementsFilter.values) {
-        if (!requirementsList.contains(filter_word)) {
-          requirementsList.add(filter_word);
-        }
-      }
-      String requirementParts = "";
-      for (int i = 0; i < requirementsList.size(); i++) {
-        String term = requirementsList.get(i);
-        String plus = "";
-        if (i != 0) {
-          plus = "+";
-        }
-        requirementParts += plus + " ((length(p.requirement) - length(replace(p.requirement, '"
-            + term + "', '')) )::int  / length('" + term + "'))";
-
-      }
-      counting_part += "+( " + requirementParts + " *" + requirementsMultiplier + ")";
-
-    }
-
-    // supervisor_name
-    if (supervisorFilter.hasValues || !words.isEmpty()) {
-      List<String> supervisorList = new ArrayList<String>();
-      for (String tag_word : words) {
-        supervisorList.add(tag_word);
-      }
-      for (String filter_word : supervisorFilter.values) {
-        if (!supervisorList.contains(filter_word)) {
-          supervisorList.add(filter_word);
-        }
-      }
-      String supervisorNameParts = "";
-      for (int i = 0; i < supervisorList.size(); i++) {
-        String term = supervisorList.get(i);
-        String plus = "";
-        if (i != 0) {
-          plus = "+";
-        }
-        supervisorNameParts +=
-            plus + " ((length(p.supervisor_name) - length(replace(p.supervisor_name, '" + term
-                + "', '')) )::int  / length('" + term + "'))";
-
-      }
-      counting_part += "+( " + supervisorNameParts + " *" + supervisorNameMultiplier + ")";
-
-    }
-
-    // short_description
-    if (shortDescriptionFilter.hasValues || !words.isEmpty()) {
-      List<String> shortDescriptionList = new ArrayList<String>();
-      for (String tag_word : words) {
-        shortDescriptionList.add(tag_word);
-      }
-      for (String filter_word : shortDescriptionFilter.values) {
-        if (!shortDescriptionList.contains(filter_word)) {
-          shortDescriptionList.add(filter_word);
-        }
-      }
-      String shortDescriptionParts = "";
-      for (int i = 0; i < shortDescriptionList.size(); i++) {
-        String term = shortDescriptionList.get(i);
-        String plus = "";
-        if (i != 0) {
-          plus = "+";
-        }
-        shortDescriptionParts +=
-            plus + " ((length(p.short_description) - length(replace(p.short_description, '" + term
-                + "', '')) )::int  / length('" + term + "'))";
-
-      }
-      counting_part += "+( " + shortDescriptionParts + " *" + shortDescriptionMultiplier + ")";
-
-    }
-
-    // description
-    if (descriptionFilter.hasValues || !words.isEmpty()) {
-      List<String> descriptionList = new ArrayList<String>();
-      for (String tag_word : words) {
-        descriptionList.add(tag_word);
-      }
-      for (String filter_word : descriptionFilter.values) {
-        if (!descriptionList.contains(filter_word)) {
-          descriptionList.add(filter_word);
-        }
-      }
-      String descriptionParts = "";
-      for (int i = 0; i < descriptionList.size(); i++) {
-        String descTerm = descriptionList.get(i);
-        String plus = "";
-        if (i != 0) {
-          plus = "+";
-        }
-        descriptionParts += plus + " ((length(p.description) - length(replace(p.description, '"
-            + descTerm + "', '')) )::int  / length('" + descTerm + "'))";
-
-      }
-      counting_part += "+( " + descriptionParts + " *" + descriptionMultiplier + ")";
-
-    }
 
 
     // tags
-    if (tagsFilter.hasValues || !words.isEmpty()) {
+    
+    if (!resultList.get(this.tags).values.isEmpty() || !resultList.get(this.words).values.isEmpty()) {
       List<String> tagsList = new ArrayList<String>();
-      for (String tag_word : words) {
+      for (String tag_word : resultList.get(this.words).values) {
         tagsList.add(tag_word);
       }
-      for (String filter_word : tagsFilter.values) {
+      for (String filter_word : resultList.get(this.tags).values) {
         if (!tagsList.contains(filter_word)) {
           tagsList.add(filter_word);
         }
@@ -317,31 +197,50 @@ public class SearchResultService {
         if (i != 0) {
           comma = ",";
         }
+        paramValues.add(new SqlParameterValue(Types.VARCHAR,  tagX));
 
-        tags += comma + "'" + tagX + "'";
+        tags += comma + " ? ";  // "'" + tagX + "'";
 
       }
       counting_part +=
           "+( ( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND (pt.tag_name in ("
-              + tags + ")) ) *" + tagMultiplier + ")";
+              + tags + ")) ) *" + resultList.get(this.tags).weight + ")";
 
     }
 
-    String paging_part = " LIMIT " + pageable.getPageSize() + "  OFFSET " + pageable.getOffset();
+    paramValues.add(new SqlParameterValue(Types.INTEGER,  pageable.getPageSize()));
+    paramValues.add(new SqlParameterValue(Types.INTEGER,  pageable.getOffset()));
+    String paging_part = " LIMIT ?  OFFSET ? ";
 
     String from_part = "SELECT  p.id as id, (" + counting_part
         + ") as priority from project p where " + where_part;
     String full_query = "Select result_query.id from (" + from_part
         + " ORDER BY priority desc ) as result_query " + paging_part + ";";
 
-//    log.info(full_query);
+    
 
-    List<UUID> result = jdbcTemplate.queryForList(full_query, UUID.class);
+    
+//    log.info(full_query);
+     
+    Object[] preparedValues = new Object[paramValues.size()];
+    for (int i = 0; i < paramValues.size(); i++) {
+      preparedValues[i] = paramValues.get(i);
+    }
+
+    List<UUID> result = jdbcTemplate.queryForList(full_query,preparedValues ,UUID.class );
+    
 
     String full_query_no_paging =
         "Select count(*) from (" + from_part + " ORDER BY priority desc ) as result_query ;";
+    
+    // -2 wegen paging
+    int pagingRemove = 2;
+    Object[] preparedValues2 = new Object[paramValues.size()-pagingRemove];
+    for (int i = 0; i < paramValues.size()-pagingRemove; i++) {
+      preparedValues2[i] = paramValues.get(i);
+    }
 
-    long count_data = jdbcTemplate.queryForObject(full_query_no_paging, Long.class);
+    long count_data = jdbcTemplate.queryForObject(full_query_no_paging,preparedValues2, Long.class);
 
 
     List<ProjectSearchData> retList = new ArrayList<>();
@@ -358,9 +257,9 @@ public class SearchResultService {
 
   }
 
-  private String buildWhereClause(FilterResult filter, String dbFieldName) {
+  private String buildWhereClause(ResultList filter, String dbFieldName) {
     String queryPart = "";
-    if (filter.hasValues) {
+    if (!filter.values.isEmpty()) {
       for (int i = 0; i < filter.values.size(); i++) {
         String part = filter.values.get(i);
         if (i != 0) {
@@ -375,19 +274,41 @@ public class SearchResultService {
     return queryPart;
   }
 
+  private String prepareSelectStringCount(String dbFieldName, ResultList categoryResultList,List<String> words ,  List <SqlParameterValue> paramValues)
+  {
+    String contentParts = "";
+    if (!categoryResultList.values.isEmpty() || !words.isEmpty()) {
+      List<String> contentList = new ArrayList<String>();
+      for (String tag_word : words) {
+        contentList.add(tag_word);
+      }
+      for (String filter_word : categoryResultList.values) {
+        if (!contentList.contains(filter_word)) {
+          contentList.add(filter_word);
+        }
+      }
+      
+      for (int i = 0; i < contentList.size(); i++) {
+        String descTerm = contentList.get(i);
+        String plus = "";
+        if (i != 0) {
+          plus = "+";
+        }
+        contentParts +=plus + " ((length(p."+dbFieldName+") - length(replace(p."+dbFieldName+", "
+            + " ? , '')) )::int  / length( ? )) ";
+        
+        paramValues.add(new SqlParameterValue(Types.VARCHAR,  descTerm));
+        paramValues.add(new SqlParameterValue(Types.VARCHAR,  descTerm));
 
-  public Long getTotalElements() {
-    log.info("" + projectRepository.count());
-    return projectRepository.count();
+      }
+    }
+    else
+    {
+      contentParts =" 0 ";
+    }
+    
+    return " + ( (" + contentParts + ") *" + categoryResultList.weight + ") ";
   }
-
-  public Page<UUID> findAll(Pageable pageable, String searchText) {
-
-    Page<Project> projects = projectRepository.findAll(pageable);
-
-    return projects.map(project -> project.getId());
-  }
-
 
 
 }

@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,6 +50,91 @@ public class CachedSearchResultService {
     this.cache = cache;
 
     log.info("SearchService: Projects loaded");
+  }
+  
+  public class ResultList
+  {
+    public List<String> values;
+    public String key;
+    public int weight;
+    
+    public ResultList( List<String> values,String key, int weight)
+    {
+      this.values=values;
+      this.key=key;
+      this.weight=weight;
+    }
+    
+  }
+  
+  public Map<String, ResultList> prepareFilterLists(String searchText)
+  {
+    if (searchText == null || searchText.length() < 2)
+      return null;
+    
+    String filter = searchText.toLowerCase();
+    
+    Map<String, ResultList> return_lists = new HashMap();
+
+    String key = "";
+    int weight = 1;
+    FilterResult filterResReturn;
+    
+
+    key = env.getProperty("searchNames.status", "Status");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.status", "1000"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+    
+    key = env.getProperty("searchNames.title", "Titel");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.title", "50"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+    
+    key = env.getProperty("searchNames.supervisorName", "Betreuer");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+    
+    key = env.getProperty("searchNames.description", "Beschreibung");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.description", "1"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+    
+    key = env.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+    
+    key = env.getProperty("searchNames.requirements", "Voraussetzung");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+    
+    key = env.getProperty("searchNames.tag", "Tag");
+    weight =  Integer.valueOf(env.getProperty("searchMultiplier.tag", "10"));
+    filterResReturn = getFilter(filter, key);
+    filter = filterResReturn.filter;
+    return_lists.put(key,new ResultList(filterResReturn.values,key,weight));
+
+    // rest
+    List<String> words = new ArrayList<>();
+
+    Pattern reg = Pattern.compile("(\\w+)");
+    Matcher m = reg.matcher(filter);
+    while (m.find()) {
+      words.add(m.group());
+    }
+   
+    return_lists.put("Words",new ResultList(words,"Words",1));
+ 
+    return return_lists;
   }
 
   public List<Project> getProjects(String searchText) {
