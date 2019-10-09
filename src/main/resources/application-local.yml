@@ -7,6 +7,7 @@ spring:
     password: search-service
     url: jdbc:h2:mem:testdb
     username: search-service
+    driverClassName: org.h2.Driver 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
