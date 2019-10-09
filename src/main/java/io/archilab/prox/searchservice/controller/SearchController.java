@@ -174,7 +174,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     if (0 != pageable.getPageNumber()) {
       ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() + 1))).build();
+          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() - 1))).build();
       uri = ucb.toUri();
       onode_links_prev.put("href", uri.toString());
       onode_links.set("prev", onode_links_prev);
@@ -241,15 +241,21 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     long totalElements = projects.size();
     long size = (long) pageable.getPageSize();
-    long lastPage = Math.max (1, totalElements / size);
+    long totalPages = totalElements / size;
+
+    if(totalElements % size != 0)
+        totalPages ++;
+
+    long lastPage = Math.max(0, totalPages - 1);
 
     log.info("total: " + totalElements);
     log.info("size: " + size);
-    log.info("lastPage: " + lastPage);
+    log.info("totalPages: " + totalPages);
+      log.info("lastPage: " + lastPage);
 
     onode_page.put("size", size);
     onode_page.put("totalElements", totalElements);
-    onode_page.put("totalPages", lastPage);
+    onode_page.put("totalPages", totalPages);
     onode_page.put("number", pageable.getPageNumber());
 
     StringBuilder requestURL = new StringBuilder(httpServletRequest.getRequestURL().toString());
@@ -275,9 +281,11 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     if (0 != pageable.getPageNumber()) {
       ucb = ServletUriComponentsBuilder.fromRequest(httpServletRequest)
-          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() + 1))).build();
+          .replaceQueryParam("page", String.valueOf((pageable.getPageNumber() - 1))).build();
       uri = ucb.toUri();
+
       onode_links_prev.put("href", uri.toString());
+
       onode_links.set("prev", onode_links_prev);
     }
 
