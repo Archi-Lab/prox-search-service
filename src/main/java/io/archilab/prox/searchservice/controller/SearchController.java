@@ -28,6 +28,8 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import io.archilab.prox.searchservice.project.ProjectRepository;
 import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
 import io.archilab.prox.searchservice.services.SearchResultService;
@@ -45,6 +47,10 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
   @Autowired
   CachedSearchResultService cachedSearchResultService;
+  
+
+  @Autowired
+  ProjectRepository projectRepository;
 
   private static TemplateVariables getBaseTemplateVariables() {
     return new TemplateVariables(
@@ -53,13 +59,6 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
         new TemplateVariable("size", TemplateVariable.VariableType.REQUEST_PARAM),
         new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM));
   }
-
-  
-  // TODO   fix tests
-  //        secure analysis fo search string return if usable   return if empty or bad
-  //        test speed comparison
-  //        database fields all not null
-
 
   
   
@@ -89,9 +88,9 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
     try {
 
-      Link sasa = new Link(new UriTemplate(linkToController + "/sqlProjects",
+      Link sasa = new Link(new UriTemplate(linkToController + "/sqlprojects",
           // register it as variable
-          getBaseTemplateVariables()), "sqlProjects");
+          getBaseTemplateVariables()), "sqlprojects");
 
       resource.add(sasa);
 
@@ -114,7 +113,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   public String searchProjects(@NotNull final Pageable pageable,
       @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
       throws Exception {
-
+    
     ObjectMapper objectMapper = new ObjectMapper();
 
     ObjectNode onode_root = objectMapper.createObjectNode();
@@ -251,7 +250,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     log.info("total: " + totalElements);
     log.info("size: " + size);
     log.info("totalPages: " + totalPages);
-      log.info("lastPage: " + lastPage);
+    log.info("lastPage: " + lastPage);
 
     onode_page.put("size", size);
     onode_page.put("totalElements", totalElements);

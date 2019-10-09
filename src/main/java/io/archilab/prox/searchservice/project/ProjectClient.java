@@ -17,7 +17,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
-@Slf4j
 public class ProjectClient {
 
   private final org.slf4j.Logger logger = LoggerFactory.getLogger(ProjectClient.class);

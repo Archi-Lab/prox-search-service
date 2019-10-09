@@ -75,7 +75,7 @@ public class SearchResultService {
   private final String tags;
   private final String words;
 
-  Logger log = LoggerFactory.getLogger(ProjectRepository.class);
+  Logger log = LoggerFactory.getLogger(SearchResultService.class);
   
   public SearchResultService(JdbcTemplate jdbcTemplate,Environment env, CachedSearchResultService cachedSearchResultService)
   {
@@ -208,24 +208,23 @@ public class SearchResultService {
 
     }
 
+
+    String paging_part = " LIMIT ?  OFFSET ? ";
     paramValues.add(new SqlParameterValue(Types.INTEGER,  pageable.getPageSize()));
     paramValues.add(new SqlParameterValue(Types.INTEGER,  pageable.getOffset()));
-    String paging_part = " LIMIT ?  OFFSET ? ";
 
     String from_part = "SELECT  p.id as id, (" + counting_part
         + ") as priority from project p where " + where_part;
     String full_query = "Select result_query.id from (" + from_part
-        + " ORDER BY priority desc ) as result_query " + paging_part + ";";
+        + " ORDER BY priority desc ) as result_query " + paging_part + ";";   
 
-    
-
-    
 //    log.info(full_query);
-     
+
     Object[] preparedValues = new Object[paramValues.size()];
     for (int i = 0; i < paramValues.size(); i++) {
       preparedValues[i] = paramValues.get(i);
     }
+    
 
     List<UUID> result = jdbcTemplate.queryForList(full_query,preparedValues ,UUID.class );
     
@@ -276,6 +275,7 @@ public class SearchResultService {
 
   private String prepareSelectStringCount(String dbFieldName, ResultList categoryResultList,List<String> words ,  List <SqlParameterValue> paramValues)
   {
+    
     String contentParts = "";
     if (!categoryResultList.values.isEmpty() || !words.isEmpty()) {
       List<String> contentList = new ArrayList<String>();
@@ -297,7 +297,9 @@ public class SearchResultService {
         contentParts +=plus + " ((length(p."+dbFieldName+") - length(replace(p."+dbFieldName+", "
             + " ? , '')) )::int  / length( ? )) ";
         
+        
         paramValues.add(new SqlParameterValue(Types.VARCHAR,  descTerm));
+        
         paramValues.add(new SqlParameterValue(Types.VARCHAR,  descTerm));
 
       }
