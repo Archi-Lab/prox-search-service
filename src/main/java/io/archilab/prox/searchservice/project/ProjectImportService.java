@@ -1,7 +1,6 @@
 package io.archilab.prox.searchservice.project;
 
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
-import io.archilab.prox.searchservice.services.SearchResultService;
 import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
