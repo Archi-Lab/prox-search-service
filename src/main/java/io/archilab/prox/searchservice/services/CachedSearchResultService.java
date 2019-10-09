@@ -160,13 +160,13 @@ public class CachedSearchResultService {
             Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50")),
             (project -> project.getSupervisorName() == null ? "" : project.getSupervisorName().getSupervisorName())));
 
-    filters.add(new Filter(env.getProperty("searchNames.description", "Beschreibung"),
-            Integer.valueOf(env.getProperty("searchMultiplier.description", "1")),
-            (project -> project.getDescription() == null ? "" : project.getDescription().getDescription())));
-
     filters.add(new Filter(env.getProperty("searchNames.shortDescription", "Kurzbeschreibung"),
             Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1")),
             (project -> project.getShortDescription() == null ? "" : project.getShortDescription().getShortDescription())));
+
+    filters.add(new Filter(env.getProperty("searchNames.description", "Beschreibung"),
+            Integer.valueOf(env.getProperty("searchMultiplier.description", "1")),
+            (project -> project.getDescription() == null ? "" : project.getDescription().getDescription())));
 
     filters.add(new Filter(env.getProperty("searchNames.requirements", "Voraussetzung"),
             Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10")),
@@ -325,7 +325,7 @@ public class CachedSearchResultService {
 
         for (String word : words) {
           if(text == word){
-            weight += weightValue * 3;
+            weight += weightValue * 5;
           }
           else if (text.contains(word)) {
             weight += weightValue;

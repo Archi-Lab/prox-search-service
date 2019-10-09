@@ -30,7 +30,7 @@ searchMultiplier:
   requirements: 5
   shortDescription: 1
   description: 1
-  tag: 10
+  tag: 25
 server:
   port: 9004
   use-forward-headers: true
