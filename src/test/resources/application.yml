@@ -3,22 +3,7 @@ eureka:
     enabled: true
 keycloak:
   enabled: false
-searchNames:
-  status: Status
-  title: Titel
-  supervisorName: Betreuer
-  requirements: Voraussetzung
-  shortDescription: Kurzbeschreibung
-  description: Beschreibung
-  tag: Tag
-searchMultiplier:
-  status: 1000
-  title: 50
-  supervisorName: 50
-  requirements: 5
-  shortDescription: 1
-  description: 1
-  tag: 10
+
 import:
   delay:
     seconds: 10
@@ -42,7 +27,7 @@ spring:
     properties:
       
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQL95Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob:
             non_contextual_creation: true

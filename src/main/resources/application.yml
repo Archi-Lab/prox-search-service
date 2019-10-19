@@ -31,6 +31,7 @@ searchMultiplier:
   shortDescription: 1
   description: 1
   tag: 25
+  boostTags: 2
 server:
   port: 9004
   use-forward-headers: true

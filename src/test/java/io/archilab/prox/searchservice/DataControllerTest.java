@@ -141,8 +141,6 @@ public class DataControllerTest {
 
     }
 
-    
-
     Pair<List<ProjectSearchData>, Long> resultData = null;
     try {
       resultData = searchResultService.findPaginated(pageable, searchText);

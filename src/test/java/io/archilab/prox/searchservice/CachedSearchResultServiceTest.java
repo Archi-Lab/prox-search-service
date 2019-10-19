@@ -84,14 +84,14 @@ public class CachedSearchResultServiceTest {
     // "Predictive-Maintenance" => A, B
     var predMaintainanceProjects = searchService.getProjects("Predictive-Maintenance");
     Assert.assertEquals(2, predMaintainanceProjects.size());
-    Assert.assertEquals(projectA.getId(), predMaintainanceProjects.get(0).getId());
-    Assert.assertEquals(projectB.getId(), predMaintainanceProjects.get(1).getId());
+    Assert.assertEquals(projectB.getId(), predMaintainanceProjects.get(0).getId());
+    Assert.assertEquals(projectA.getId(), predMaintainanceProjects.get(1).getId());
 
-    // "Maintenance" => A, B
+    // "Maintenance" => B, A
     var maintainanceProjects = searchService.getProjects("Maintenance");
     Assert.assertEquals(2, maintainanceProjects.size());
-    Assert.assertEquals(projectA.getId(), maintainanceProjects.get(0).getId());
-    Assert.assertEquals(projectB.getId(), maintainanceProjects.get(1).getId());
+    Assert.assertEquals(projectB.getId(), maintainanceProjects.get(0).getId());
+    Assert.assertEquals(projectA.getId(), maintainanceProjects.get(1).getId());
 
     // Betreuer = Pyschny => A
     var pyschnyProjects = searchService.getProjects("Betreuer = Pyschny");
@@ -400,9 +400,9 @@ public class CachedSearchResultServiceTest {
     Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("tag b");
-    Assert.assertEquals(2, weightResult.size());
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    Assert.assertEquals(2, weightResult.size());  // gleichwertig result
+    Assert.assertEquals(projectA.getId(), weightResult.get(0).getId());
+    Assert.assertEquals(projectB.getId(), weightResult.get(1).getId());
   }
 
   @Test
