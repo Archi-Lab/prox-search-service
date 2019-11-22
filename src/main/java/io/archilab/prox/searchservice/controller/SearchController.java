@@ -28,7 +28,6 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import io.archilab.prox.searchservice.project.ProjectRepository;
 import io.archilab.prox.searchservice.project.ProjectSearchData;
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
@@ -47,7 +46,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
 
   @Autowired
   CachedSearchResultService cachedSearchResultService;
-  
+
 
   @Autowired
   ProjectRepository projectRepository;
@@ -60,14 +59,13 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
         new TemplateVariable("searchText", TemplateVariable.VariableType.REQUEST_PARAM));
   }
 
-  
-  
+
+
   @GetMapping
   public RepositoryLinksResource allLinks() {
     RepositoryLinksResource resource = new RepositoryLinksResource();
 
-    
- 
+
 
     // UriTemplate esd = new UriTemplate();
     final String linkToController = ControllerLinkBuilder.linkTo(SearchController.class).toString();
@@ -113,7 +111,7 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
   public String searchProjects(@NotNull final Pageable pageable,
       @RequestParam("searchText") String searchText, HttpServletRequest httpServletRequest)
       throws Exception {
-    
+
     ObjectMapper objectMapper = new ObjectMapper();
 
     ObjectNode onode_root = objectMapper.createObjectNode();
@@ -242,8 +240,8 @@ public class SearchController implements ResourceProcessor<RepositoryLinksResour
     long size = (long) pageable.getPageSize();
     long totalPages = totalElements / size;
 
-    if(totalElements % size != 0)
-        totalPages ++;
+    if (totalElements % size != 0)
+      totalPages++;
 
     long lastPage = Math.max(0, totalPages - 1);
 

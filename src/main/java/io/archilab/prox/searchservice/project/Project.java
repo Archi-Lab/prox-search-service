@@ -76,11 +76,10 @@ public class Project extends AbstractEntity {
     this.supervisorName = supervisorName;
   }
 
-  public List<String> GetTagNames()
-  {
+  public List<String> GetTagNames() {
     List<String> names = new ArrayList<>();
 
-    if(this.tags == null)
+    if (this.tags == null)
       return names;
 
     for (TagName tagName : this.tags)

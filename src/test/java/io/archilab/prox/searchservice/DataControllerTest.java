@@ -4,9 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
-
 import javax.sql.DataSource;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -44,24 +42,24 @@ public class DataControllerTest {
 
   @Autowired
   private SearchResultService searchResultService;
-  
+
   @Autowired
   private CachedSearchResultService service2;
-  
+
   @Autowired
   private JdbcTemplate jdbcTemplate;
-  
+
   @Autowired
   private ProjectRepository projectRepository;
 
 
   @Test
   public void fullSearchTest() {
-    
+
     Pageable pageable = PageRequest.of(0, 10);
-    
+
     String searchText = "haus";
-    
+
 
     log.info(" " + projectRepository.count());
     if (projectRepository.count() == 0) {
@@ -148,15 +146,15 @@ public class DataControllerTest {
       e1.printStackTrace();
     }
     List<ProjectSearchData> resultPage = resultData.getFirst();
-    
+
     long count = resultData.getSecond();
     for (ProjectSearchData ele : resultPage) {
 
       log.info(ele.getId());
     }
-  
-    log.info("count "+count);
-    
+
+    log.info("count " + count);
+
 
   }
 }

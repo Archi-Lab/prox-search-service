@@ -3,7 +3,6 @@ package io.archilab.prox.searchservice.project;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.transaction.Transactional;
-
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
