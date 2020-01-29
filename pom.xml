@@ -16,7 +16,7 @@
   <description>Prox Search Service</description>
 
   <properties>
-    <changelist>SNAPSHOT</changelist>
+    <changelist>-SNAPSHOT</changelist>
     <docker.image.prefix>docker.nexus.archi-lab.io/archilab</docker.image.prefix>
     <dockerfile-maven.version>1.4.10</dockerfile-maven.version>
     <frontend-maven.nodeVersion>v13.2.0</frontend-maven.nodeVersion>
