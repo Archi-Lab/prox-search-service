@@ -147,18 +147,6 @@
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-install-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>com.github.ekryd.sortpom</groupId>
         <artifactId>sortpom-maven-plugin</artifactId>
         <version>${sortpom.version}</version>
@@ -226,6 +214,7 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
+            <id>unpack</id>
             <goals>
               <goal>unpack</goal>
             </goals>
@@ -243,6 +232,18 @@
         </executions>
       </plugin>
       <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>dockerfile-maven-plugin</artifactId>
         <version>${dockerfile-maven.version}</version>
@@ -256,12 +257,14 @@
             <goals>
               <goal>build</goal>
             </goals>
+            <phase>package</phase>
           </execution>
           <execution>
             <id>docker-tag</id>
             <goals>
               <goal>tag</goal>
             </goals>
+            <phase>package</phase>
             <configuration>
               <tag>${project.version}</tag>
             </configuration>
@@ -271,6 +274,7 @@
             <goals>
               <goal>push</goal>
             </goals>
+            <phase>deploy</phase>
             <configuration>
               <tag>${project.version}</tag>
             </configuration>
