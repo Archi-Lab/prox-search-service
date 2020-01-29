@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    properties:
+      javax:
+        persistence:
+          schema-generation:
+            scripts:
+              action: update
+              create-target: update.sql
