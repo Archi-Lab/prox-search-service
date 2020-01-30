@@ -1,8 +1,16 @@
 package io.archilab.prox.searchservice;
 
-import io.archilab.prox.searchservice.project.*;
+import io.archilab.prox.searchservice.project.Project;
+import io.archilab.prox.searchservice.project.ProjectDescription;
+import io.archilab.prox.searchservice.project.ProjectName;
+import io.archilab.prox.searchservice.project.ProjectRepository;
+import io.archilab.prox.searchservice.project.ProjectRequirement;
+import io.archilab.prox.searchservice.project.ProjectShortDescription;
+import io.archilab.prox.searchservice.project.ProjectStatus;
+import io.archilab.prox.searchservice.project.SupervisorName;
+import io.archilab.prox.searchservice.project.TagName;
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
-import lombok.var;
+import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,21 +18,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
-import java.util.UUID;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
 public class CachedSearchResultServiceTest {
 
-  @Autowired
-  ProjectRepository projectRepository;
+  @Autowired ProjectRepository projectRepository;
 
-  @Autowired
-  Environment environment;
+  @Autowired Environment environment;
 
-
-  private Project createProject(String title, String supervisor, ProjectStatus status,
-      String requirement, String description, String shortDescription, String[] tags) {
+  private Project createProject(
+      String title,
+      String supervisor,
+      ProjectStatus status,
+      String requirement,
+      String description,
+      String shortDescription,
+      String[] tags) {
     Project project = new Project();
     project.setId(UUID.randomUUID());
     project.setName(new ProjectName(title));
@@ -45,8 +55,8 @@ public class CachedSearchResultServiceTest {
   public void googleStyleUserStory() {
     Project projectA = new Project();
     projectA.setId(UUID.randomUUID());
-    projectA
-        .setName(new ProjectName("Eine Predictive-Maintenance-Plattform für Schneidemaschinen"));
+    projectA.setName(
+        new ProjectName("Eine Predictive-Maintenance-Plattform für Schneidemaschinen"));
     projectA.setStatus(ProjectStatus.VERFÜGBAR);
     projectA.setSupervisorName(new SupervisorName("Prof. Dr. Pyschny"));
     projectA.setRequirement(new ProjectRequirement("Software Engineering 1"));
@@ -66,13 +76,12 @@ public class CachedSearchResultServiceTest {
     projectB.setSupervisorName(new SupervisorName("Prof. Dr. Bente"));
     projectB.setRequirement(new ProjectRequirement("Datenbanken 1+2"));
     projectB.setDescription(new ProjectDescription("Maintenance von Software-Architekturen"));
-    projectB
-        .setShortDescription(new ProjectShortDescription("Maintenance von Software-Architekturen"));
+    projectB.setShortDescription(
+        new ProjectShortDescription("Maintenance von Software-Architekturen"));
     projectB.getTags().add(new TagName("Maintenance"));
     projectB.getTags().add(new TagName("Software-Architektur"));
 
     this.projectRepository.save(projectB);
-
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
@@ -103,8 +112,8 @@ public class CachedSearchResultServiceTest {
   public void extendedSearchUserStory() {
     Project projectA = new Project();
     projectA.setId(UUID.randomUUID());
-    projectA
-        .setName(new ProjectName("Eine Predictive-Maintenance-Plattform für Schneidemaschinen"));
+    projectA.setName(
+        new ProjectName("Eine Predictive-Maintenance-Plattform für Schneidemaschinen"));
     projectA.setStatus(ProjectStatus.VERFÜGBAR);
     projectA.setSupervisorName(new SupervisorName("Prof. Dr. Pyschny"));
     projectA.setRequirement(new ProjectRequirement("Software Engineering 1"));
@@ -124,8 +133,8 @@ public class CachedSearchResultServiceTest {
     projectB.setSupervisorName(new SupervisorName("Prof. Dr. Bente"));
     projectB.setRequirement(new ProjectRequirement("Datenbanken 1+2"));
     projectB.setDescription(new ProjectDescription("Maintenance von Software-Architekturen"));
-    projectB
-        .setShortDescription(new ProjectShortDescription("Maintenance von Software-Architekturen"));
+    projectB.setShortDescription(
+        new ProjectShortDescription("Maintenance von Software-Architekturen"));
     projectB.getTags().add(new TagName("Maintenance"));
     projectB.getTags().add(new TagName("Software-Architektur"));
 
@@ -167,18 +176,31 @@ public class CachedSearchResultServiceTest {
     Assert.assertEquals(projectA.getId(), pyschnyProjects.get(0).getId());
   }
 
-
   @Test
   public void title() {
-    Project projectA = this.createProject("Project-A AA", "Super", ProjectStatus.VERFÜGBAR,
-        "Requirement", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
-    Project projectB = this.createProject("Project-B BB", "Super", ProjectStatus.VERFÜGBAR,
-        "Requirement", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.title", "Titel");
+    String key = this.environment.getProperty("searchNames.title", "Titel");
 
     var filterResult = searchService.getProjects(key + "='Project-B'");
     Assert.assertEquals(1, filterResult.size());
@@ -192,15 +214,29 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void supervisor() {
-    Project projectA = this.createProject("Project-A AA", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB", ProjectStatus.VERFÜGBAR,
-        "Requirement", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.supervisor", "Betreuer");
+    String key = this.environment.getProperty("searchNames.supervisor", "Betreuer");
 
     var filterResult = searchService.getProjects(key + "='Super B'");
     Assert.assertEquals(1, filterResult.size());
@@ -214,15 +250,29 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void status() {
-    Project projectA = this.createProject("Project-A AA", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB", ProjectStatus.ABGESCHLOSSEN,
-        "Requirement", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB",
+            ProjectStatus.ABGESCHLOSSEN,
+            "Requirement",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.status", "Status");
+    String key = this.environment.getProperty("searchNames.status", "Status");
 
     var filterResult = searchService.getProjects(key + "='" + ProjectStatus.VERFÜGBAR.name() + "'");
     Assert.assertEquals(1, filterResult.size());
@@ -236,15 +286,29 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void requirement() {
-    Project projectA = this.createProject("Project-A AA", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement AA", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement AA",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB", ProjectStatus.VERFÜGBAR,
-        "Requirement BB", "Desc", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement BB",
+            "Desc",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.requirement", "Voraussetzung");
+    String key = this.environment.getProperty("searchNames.requirement", "Voraussetzung");
 
     var filterResult = searchService.getProjects(key + "='Requirement B'");
     Assert.assertEquals(1, filterResult.size());
@@ -258,15 +322,29 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void description() {
-    Project projectA = this.createProject("Project-A AA", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement AA", "Desc AA", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement AA",
+            "Desc AA",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB", ProjectStatus.VERFÜGBAR,
-        "Requirement BB", "Desc BB", "ShortDesc", new String[] {"tag1", "tag2"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement BB",
+            "Desc BB",
+            "ShortDesc",
+            new String[] {"tag1", "tag2"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.description", "Beschreibung");
+    String key = this.environment.getProperty("searchNames.description", "Beschreibung");
 
     var filterResult = searchService.getProjects(key + "='Desc B'");
     Assert.assertEquals(1, filterResult.size());
@@ -280,15 +358,29 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void shortDescription() {
-    Project projectA = this.createProject("Project-A AA", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement AA", "Desc AA", "ShortDesc AA", new String[] {"tag1", "tag2"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement AA",
+            "Desc AA",
+            "ShortDesc AA",
+            new String[] {"tag1", "tag2"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB", ProjectStatus.VERFÜGBAR,
-        "Requirement BB", "Desc BB", "ShortDesc BB", new String[] {"tag1", "tag2"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement BB",
+            "Desc BB",
+            "ShortDesc BB",
+            new String[] {"tag1", "tag2"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
+    String key = this.environment.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
 
     var filterResult = searchService.getProjects(key + "='ShortDesc BB'");
     Assert.assertEquals(1, filterResult.size());
@@ -302,15 +394,29 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void tags() {
-    Project projectA = this.createProject("Project-A AA", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement AA", "Desc AA", "ShortDesc AA", new String[] {"tag1", "tag2", "tag a"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement AA",
+            "Desc AA",
+            "ShortDesc AA",
+            new String[] {"tag1", "tag2", "tag a"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB", ProjectStatus.VERFÜGBAR,
-        "Requirement BB", "Desc BB", "ShortDesc BB", new String[] {"tag1", "tag2", "tag b"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement BB",
+            "Desc BB",
+            "ShortDesc BB",
+            new String[] {"tag1", "tag2", "tag b"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
-    String key = environment.getProperty("searchNames.tag", "Tag");
+    String key = this.environment.getProperty("searchNames.tag", "Tag");
 
     var filterResult = searchService.getProjects(key + "='tag b'");
     Assert.assertEquals(1, filterResult.size());
@@ -324,11 +430,25 @@ public class CachedSearchResultServiceTest {
 
   @Test
   public void weights() {
-    Project projectA = this.createProject("Project-A AA CC", "Super AA", ProjectStatus.VERFÜGBAR,
-        "Requirement AA", "Desc AA", "ShortDesc AA CC", new String[] {"tag1", "tag2", "tag a"});
+    Project projectA =
+        this.createProject(
+            "Project-A AA CC",
+            "Super AA",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement AA",
+            "Desc AA",
+            "ShortDesc AA CC",
+            new String[] {"tag1", "tag2", "tag a"});
 
-    Project projectB = this.createProject("Project-B BB", "Super BB CC", ProjectStatus.VERFÜGBAR,
-        "Requirement BB", "Desc BB", "ShortDesc BB", new String[] {"tag1", "tag2", "tag b", "cc"});
+    Project projectB =
+        this.createProject(
+            "Project-B BB",
+            "Super BB CC",
+            ProjectStatus.VERFÜGBAR,
+            "Requirement BB",
+            "Desc BB",
+            "ShortDesc BB",
+            new String[] {"tag1", "tag2", "tag b", "cc"});
 
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 

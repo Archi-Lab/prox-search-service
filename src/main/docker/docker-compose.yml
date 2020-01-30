@@ -1,9 +1,8 @@
-version: "3.6"
+version: "3.7"
 
 services:
-
   search-service:
-    image: docker.nexus.archi-lab.io/archilab/${IMAGE}:${TAG}
+    image: ${REPOSITORY}/${IMAGE}:${TAG}
     networks:
       - prox
       - search-db

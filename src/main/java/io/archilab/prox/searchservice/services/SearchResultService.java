@@ -1,8 +1,10 @@
 package io.archilab.prox.searchservice.services;
 
+import io.archilab.prox.searchservice.project.ProjectSearchData;
+import io.archilab.prox.searchservice.project.ProjectStatus;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,23 +21,10 @@ import org.springframework.data.util.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.stereotype.Service;
-import io.archilab.prox.searchservice.project.ProjectSearchData;
-import io.archilab.prox.searchservice.project.ProjectStatus;
-import lombok.var;
-import java.sql.Types;
 
 @Service
 @Transactional
-
 public class SearchResultService {
-
-  @PersistenceContext
-  private EntityManager entityManager;
-
-
-  // @Autowired
-  private JdbcTemplate jdbcTemplate;
-
 
   private final String status;
   private final String title;
@@ -45,50 +34,49 @@ public class SearchResultService {
   private final String requirements;
   private final String tags;
   private final String words;
-
   private final int titleMultiplier;
   private final int supervisorNameMultiplier;
   private final int descriptionMultiplier;
   private final int shortDescriptionMultiplier;
   private final int requirementsMultiplier;
   private final int tagsMultiplier;
-
   private final int boostTags;
-
   Logger log = LoggerFactory.getLogger(SearchResultService.class);
+  @PersistenceContext private EntityManager entityManager;
+  // @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   public SearchResultService(JdbcTemplate jdbcTemplate, Environment env) {
     this.jdbcTemplate = jdbcTemplate;
 
-    status = env.getProperty("searchNames.status", "Status");
+    this.status = env.getProperty("searchNames.status", "Status");
 
-    title = env.getProperty("searchNames.title", "Titel");
+    this.title = env.getProperty("searchNames.title", "Titel");
 
-    supervisorName = env.getProperty("searchNames.supervisorName", "Betreuer");
+    this.supervisorName = env.getProperty("searchNames.supervisorName", "Betreuer");
 
-    description = env.getProperty("searchNames.description", "Beschreibung");
+    this.description = env.getProperty("searchNames.description", "Beschreibung");
 
-    shortDescription = env.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
+    this.shortDescription = env.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
 
-    requirements = env.getProperty("searchNames.requirements", "Voraussetzung");
+    this.requirements = env.getProperty("searchNames.requirements", "Voraussetzung");
 
-    tags = env.getProperty("searchNames.tag", "Tag");
+    this.tags = env.getProperty("searchNames.tag", "Tag");
 
-    words = "Words";
+    this.words = "Words";
 
-    titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.title", "50"));
-    supervisorNameMultiplier =
+    this.titleMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.title", "50"));
+    this.supervisorNameMultiplier =
         Integer.valueOf(env.getProperty("searchMultiplier.supervisorName", "50"));
-    descriptionMultiplier =
+    this.descriptionMultiplier =
         Integer.valueOf(env.getProperty("searchMultiplier.shortDescription", "1"));
-    shortDescriptionMultiplier =
+    this.shortDescriptionMultiplier =
         Integer.valueOf(env.getProperty("searchMultiplier.description", "1"));
-    requirementsMultiplier =
+    this.requirementsMultiplier =
         Integer.valueOf(env.getProperty("searchMultiplier.requirements", "10"));
-    tagsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.tag", "25"));
+    this.tagsMultiplier = Integer.valueOf(env.getProperty("searchMultiplier.tag", "25"));
 
-    boostTags = Integer.valueOf(env.getProperty("searchMultiplier.boostTags", "2"));
-
+    this.boostTags = Integer.valueOf(env.getProperty("searchMultiplier.boostTags", "2"));
   }
 
   public Pair<List<ProjectSearchData>, Long> findPaginated(Pageable pageable, String searchText)
@@ -96,7 +84,7 @@ public class SearchResultService {
 
     searchText = searchText.toLowerCase();
 
-    Map<String, ResultList> resultList = prepareFilterLists(searchText);
+    Map<String, ResultList> resultList = this.prepareFilterLists(searchText);
 
     if (resultList == null) {
       throw new Exception("bad search string");
@@ -118,16 +106,16 @@ public class SearchResultService {
         tags += comma + " POSITION( ?  IN pt.tag_name) > 0 ";
 
         paramValues.add(new SqlParameterValue(Types.VARCHAR, tagX));
-
       }
       mustHaveTagParts =
-
-          " (( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND ( " + tags
-              + " ) ) >= " + resultList.get(this.tags).values.size() + " )";
+          " (( SELECT COUNT(*) FROM project_tags as pt WHERE pt.project_id = p.id AND ( "
+              + tags
+              + " ) ) >= "
+              + resultList.get(this.tags).values.size()
+              + " )";
     } else {
       mustHaveTagParts = " true ";
     }
-
 
     String andStatus = "";
     if (!resultList.get(this.status).values.isEmpty()) {
@@ -138,25 +126,35 @@ public class SearchResultService {
     }
 
     String forcedTitleParts =
-        " and " + buildWhereClause(resultList.get(this.title), "name", paramValues);
-    String forcedSupervisorParts = " and "
-        + buildWhereClause(resultList.get(this.supervisorName), "supervisor_name", paramValues);
+        " and " + this.buildWhereClause(resultList.get(this.title), "name", paramValues);
+    String forcedSupervisorParts =
+        " and "
+            + this.buildWhereClause(
+                resultList.get(this.supervisorName), "supervisor_name", paramValues);
     String forcedRequirementsParts =
-        " and " + buildWhereClause(resultList.get(this.requirements), "requirement", paramValues);
-    String forcedShortDescriptionParts = " and "
-        + buildWhereClause(resultList.get(this.shortDescription), "short_description", paramValues);
+        " and "
+            + this.buildWhereClause(resultList.get(this.requirements), "requirement", paramValues);
+    String forcedShortDescriptionParts =
+        " and "
+            + this.buildWhereClause(
+                resultList.get(this.shortDescription), "short_description", paramValues);
     String forcedDescriptionParts =
-        " and " + buildWhereClause(resultList.get(this.description), "description", paramValues);
+        " and "
+            + this.buildWhereClause(resultList.get(this.description), "description", paramValues);
 
     String where_part =
-        mustHaveTagParts + forcedTitleParts + forcedSupervisorParts + forcedRequirementsParts
-            + forcedShortDescriptionParts + forcedDescriptionParts + andStatus;
-
+        mustHaveTagParts
+            + forcedTitleParts
+            + forcedSupervisorParts
+            + forcedRequirementsParts
+            + forcedShortDescriptionParts
+            + forcedDescriptionParts
+            + andStatus;
 
     String counting_part = "";
 
     counting_part = " 0 "; // wichtig, weil die Funktion prepareSelectStringCount immer am Anfang
-                           // ein plus einbaut.
+    // ein plus einbaut.
 
     // wenn status angegeben wird dann muss priority +1 gerechent werdne, da es ansonsten sein kann,
     // dass das projekt
@@ -165,36 +163,53 @@ public class SearchResultService {
       counting_part += " + 1 ";
     }
 
-    returnParts = prepareSelectStringCount("name", resultList.get(this.title),
-        resultList.get(this.words).values, paramValues);
+    returnParts =
+        this.prepareSelectStringCount(
+            "name", resultList.get(this.title), resultList.get(this.words).values, paramValues);
     counting_part += returnParts;
 
-    returnParts = prepareSelectStringCount("requirement", resultList.get(this.requirements),
-        resultList.get(this.words).values, paramValues);
+    returnParts =
+        this.prepareSelectStringCount(
+            "requirement",
+            resultList.get(this.requirements),
+            resultList.get(this.words).values,
+            paramValues);
     counting_part += returnParts;
 
-    returnParts = prepareSelectStringCount("supervisor_name", resultList.get(this.supervisorName),
-        resultList.get(this.words).values, paramValues);
+    returnParts =
+        this.prepareSelectStringCount(
+            "supervisor_name",
+            resultList.get(this.supervisorName),
+            resultList.get(this.words).values,
+            paramValues);
     counting_part += returnParts;
 
-    returnParts = prepareSelectStringCount("short_description",
-        resultList.get(this.shortDescription), resultList.get(this.words).values, paramValues);
+    returnParts =
+        this.prepareSelectStringCount(
+            "short_description",
+            resultList.get(this.shortDescription),
+            resultList.get(this.words).values,
+            paramValues);
     counting_part += returnParts;
 
-    returnParts = prepareSelectStringCount("description", resultList.get(this.description),
-        resultList.get(this.words).values, paramValues);
+    returnParts =
+        this.prepareSelectStringCount(
+            "description",
+            resultList.get(this.description),
+            resultList.get(this.words).values,
+            paramValues);
     counting_part += returnParts;
 
     // tags
 
     if (!resultList.get(this.tags).values.isEmpty()
         || !resultList.get(this.words).values.isEmpty()) {
-      List<SqlParameterValue> paramValuesTemp1 = new ArrayList<SqlParameterValue>();
+      List<SqlParameterValue> paramValuesTemp1 = new ArrayList<>();
 
       String tags1 = "";
       String tags2 = "";
 
-      List<String> tagsList = new ArrayList<String>();
+      List<String> tagsList = new ArrayList<>();
       for (String tag_word : resultList.get(this.words).values) {
         tagsList.add(tag_word);
       }
@@ -215,26 +230,38 @@ public class SearchResultService {
         tags1 += "?";
 
         paramValuesTemp1.add(new SqlParameterValue(Types.VARCHAR, tagX));
-
       }
       paramValues.addAll(paramValuesTemp1);
       paramValues.add(new SqlParameterValue(Types.VARCHAR, tags2));
 
-      counting_part += " + (select  sum( " + " CASE WHEN pt.tag_name in (" + tags1 + ") THEN "
-          + resultList.get(this.tags).weight * boostTags + "  WHEN ( pt.tag_name  ~ ? ) THEN "
-          + resultList.get(this.tags).weight + " ELSE 0 END  "
-          + "   ) from project_tags as pt where pt.project_id = p.id  ) ";
+      counting_part +=
+          " + (select  sum( "
+              + " CASE WHEN pt.tag_name in ("
+              + tags1
+              + ") THEN "
+              + resultList.get(this.tags).weight * this.boostTags
+              + "  WHEN ( pt.tag_name  ~ ? ) THEN "
+              + resultList.get(this.tags).weight
+              + " ELSE 0 END  "
+              + "   ) from project_tags as pt where pt.project_id = p.id  ) ";
     }
 
     String paging_part = " LIMIT ?  OFFSET ? ";
     paramValues.add(new SqlParameterValue(Types.INTEGER, pageable.getPageSize()));
     paramValues.add(new SqlParameterValue(Types.INTEGER, pageable.getOffset()));
 
-    String from_part = "select res_1.id, res_1.priority from (SELECT  p.id as id, (" + counting_part
-        + ") as priority from project p where " + where_part
-        + " ) as res_1  where res_1.priority > 0";
-    String full_query = "Select result_query.id from (" + from_part
-        + " ORDER BY priority desc ) as result_query " + paging_part + ";";
+    String from_part =
+        "select res_1.id, res_1.priority from (SELECT  p.id as id, ("
+            + counting_part
+            + ") as priority from project p where "
+            + where_part
+            + " ) as res_1  where res_1.priority > 0";
+    String full_query =
+        "Select result_query.id from ("
+            + from_part
+            + " ORDER BY priority desc ) as result_query "
+            + paging_part
+            + ";";
 
     // log.info(full_query);
 
@@ -243,10 +270,7 @@ public class SearchResultService {
       preparedValues[i] = paramValues.get(i);
     }
 
-
-    List<UUID> result = jdbcTemplate.queryForList(full_query, preparedValues, UUID.class);
-
-
+    List<UUID> result = this.jdbcTemplate.queryForList(full_query, preparedValues, UUID.class);
 
     String full_query_no_paging =
         "Select count(*) from (" + from_part + " ORDER BY priority desc ) as result_query ;";
@@ -259,8 +283,7 @@ public class SearchResultService {
     }
 
     long count_data =
-        jdbcTemplate.queryForObject(full_query_no_paging, preparedValues2, Long.class);
-
+        this.jdbcTemplate.queryForObject(full_query_no_paging, preparedValues2, Long.class);
 
     List<ProjectSearchData> retList = new ArrayList<>();
 
@@ -269,15 +292,13 @@ public class SearchResultService {
       // log.info("id " + uuid.toString());;
     }
 
-
     Pair<List<ProjectSearchData>, Long> pair = Pair.of(retList, count_data);
 
     return pair;
-
   }
 
-  private String buildWhereClause(ResultList filter, String dbFieldName,
-      List<SqlParameterValue> paramValues) {
+  private String buildWhereClause(
+      ResultList filter, String dbFieldName, List<SqlParameterValue> paramValues) {
     String queryPart = "";
     if (!filter.values.isEmpty()) {
       for (int i = 0; i < filter.values.size(); i++) {
@@ -296,12 +317,15 @@ public class SearchResultService {
     return queryPart;
   }
 
-  private String prepareSelectStringCount(String dbFieldName, ResultList categoryResultList,
-      List<String> words, List<SqlParameterValue> paramValues) {
+  private String prepareSelectStringCount(
+      String dbFieldName,
+      ResultList categoryResultList,
+      List<String> words,
+      List<SqlParameterValue> paramValues) {
 
     String contentParts = "";
     if (!categoryResultList.values.isEmpty() || !words.isEmpty()) {
-      List<String> contentList = new ArrayList<String>();
+      List<String> contentList = new ArrayList<>();
       for (String tag_word : words) {
         contentList.add(tag_word);
       }
@@ -317,8 +341,14 @@ public class SearchResultService {
         if (i != 0) {
           plus = "+";
         }
-        contentParts += plus + "  ((length(lower(p." + dbFieldName + ")) - length(replace(lower(p."
-            + dbFieldName + "), " + " ? , '')) )::int  / length( ? )) ";
+        contentParts +=
+            plus
+                + "  ((length(lower(p."
+                + dbFieldName
+                + ")) - length(replace(lower(p."
+                + dbFieldName
+                + "), "
+                + " ? , '')) )::int  / length( ? )) ";
 
         paramValues.add(new SqlParameterValue(Types.VARCHAR, descTerm));
         paramValues.add(new SqlParameterValue(Types.VARCHAR, descTerm));
@@ -327,62 +357,61 @@ public class SearchResultService {
       contentParts = " 0 ";
     }
 
-
     return " +( ( (" + contentParts + ") *" + categoryResultList.weight + ")  )";
   }
 
   public Map<String, ResultList> prepareFilterLists(String searchText) {
-    if (searchText == null || searchText.length() < 2)
+    if (searchText == null || searchText.length() < 2) {
       return null;
+    }
 
-    Map<String, ResultList> return_lists = new HashMap<String, ResultList>();
+    Map<String, ResultList> return_lists = new HashMap<>();
 
     String key = "";
     int weight = 1;
     Pair<String, List<String>> pair;
 
-    key = status;
+    key = this.status;
     weight = 1;
-    pair = doFiltering(searchText, key);
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
 
-    key = title;
-    weight = titleMultiplier;
-    pair = doFiltering(searchText, key);
+    key = this.title;
+    weight = this.titleMultiplier;
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
 
-    key = supervisorName;
-    weight = supervisorNameMultiplier;
-    pair = doFiltering(searchText, key);
+    key = this.supervisorName;
+    weight = this.supervisorNameMultiplier;
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
 
-    key = shortDescription;
-    weight = shortDescriptionMultiplier;
-    pair = doFiltering(searchText, key);
+    key = this.shortDescription;
+    weight = this.shortDescriptionMultiplier;
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
 
-    key = description;
-    weight = descriptionMultiplier;
-    pair = doFiltering(searchText, key);
+    key = this.description;
+    weight = this.descriptionMultiplier;
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
 
-    key = requirements;
-    weight = requirementsMultiplier;
-    pair = doFiltering(searchText, key);
+    key = this.requirements;
+    weight = this.requirementsMultiplier;
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
 
-    key = tags;
-    weight = tagsMultiplier;
-    pair = doFiltering(searchText, key);
+    key = this.tags;
+    weight = this.tagsMultiplier;
+    pair = this.doFiltering(searchText, key);
     searchText = pair.getFirst();
     return_lists.put(key, new ResultList(pair.getSecond(), key, weight));
-
 
     // free words
     List<String> words = new ArrayList<>();
@@ -423,6 +452,7 @@ public class SearchResultService {
   }
 
   public class ResultList {
+
     public final List<String> values;
     public final String key;
     public final int weight;
@@ -432,7 +462,5 @@ public class SearchResultService {
       this.key = key;
       this.weight = weight;
     }
-
   }
-
 }

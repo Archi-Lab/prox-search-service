@@ -1,14 +1,13 @@
 package io.archilab.prox.searchservice.project;
 
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
-import lombok.var;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
 
 @Transactional
 @Service
@@ -21,7 +20,9 @@ public class ProjectImportService {
 
   private Date _lastUpdate = new Date(1);
 
-  public ProjectImportService(ProjectClient projectClient, ProjectRepository projectRepository,
+  public ProjectImportService(
+      ProjectClient projectClient,
+      ProjectRepository projectRepository,
       CachedSearchResultService cachedSearchResultService) {
     this.projectClient = projectClient;
     this.projectRepository = projectRepository;
@@ -45,13 +46,15 @@ public class ProjectImportService {
 
     var projects = this.projectClient.getProjects(time);
 
-    if (projects == null)
+    if (projects == null) {
       return;
+    }
 
-    if (loadAll)
+    if (loadAll) {
       this.projectRepository.deleteAll();
-    else
+    } else {
       this.projectRepository.deleteAll(projects);
+    }
 
     this.projectRepository.saveAll(projects);
 
@@ -59,9 +62,8 @@ public class ProjectImportService {
 
     this._lastUpdate = startTime;
 
-    if (projects.size() > 0)
+    if (projects.size() > 0) {
       this.cachedSearchResultService.load();
+    }
   }
 }
-
-
