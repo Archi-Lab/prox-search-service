@@ -37,11 +37,9 @@ public class CachedSearchResultService {
 
   public void load() {
 
-    var cache = new ArrayList<Project>();
+    this.cache = new ArrayList<>();
 
-    this.projectRepository.findAll().forEach(cache::add);
-
-    this.cache = cache;
+    this.projectRepository.findAll().forEach(this.cache::add);
 
     this.log.info("SearchService: Projects loaded");
   }
