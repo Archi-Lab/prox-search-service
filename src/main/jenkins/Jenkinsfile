@@ -6,9 +6,9 @@ node {
     def image
     def tag
 
-    def server = 'tcp://10.10.10.42:2376'
-    def certs = 'prox-dev-certs'
-    def tagPrefix = '-dev'
+    def server = 'tcp://10.10.10.41:2376'
+    def certs = 'prox-prod-certs'
+    def tagPrefix = ''
 
     stage('Checkout') {
         checkout scm
