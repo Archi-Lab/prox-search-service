@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  search-service:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://archilab-infra:12201"
+
+  search-db:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://archilab-infra:12201"

@@ -1,0 +1,54 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://service-discovery:8761/eureka/
+keycloak:
+  auth-server-url: https://login.archi-lab.io/auth
+  bearer-only: true
+  cors: false
+  principal-attribute: preferred_username
+  public-client: false
+  realm: archilab
+  resource: search-service
+import:
+  delay:
+    seconds: 3
+    initial:
+      seconds: 1
+searchNames:
+  status: Status
+  title: Titel
+  supervisorName: Betreuer
+  requirements: Voraussetzung
+  shortDescription: Kurzbeschreibung
+  description: Beschreibung
+  tag: Tag
+searchMultiplier:
+  status: 1000
+  title: 50
+  supervisorName: 50
+  requirements: 5
+  shortDescription: 1
+  description: 1
+  tag: 25
+  boostTags: 2
+server:
+  port: 9004
+  use-forward-headers: true
+spring:
+  application:
+    name: search-service
+  datasource:
+    password: search-service
+    url: jdbc:postgresql://search-db:5432/search-db
+    username: search-service
+    driverClassName: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true

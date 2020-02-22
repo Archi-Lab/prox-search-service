@@ -1,0 +1,35 @@
+eureka:
+  client:
+    enabled: true
+keycloak:
+  enabled: false
+
+import:
+  delay:
+    seconds: 10
+    initial:
+      seconds: 1
+
+server:
+  port: 9004
+  use-forward-headers: true
+spring:
+  application:
+    name: search-service
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE; #MODE=PostgreSQL
+    driverClassName:   org.h2.Driver #org.postgresql.Driver
+    username: search-service
+    password: search-service
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  flyway:
+    enabled: false

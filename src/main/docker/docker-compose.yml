@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  search-service:
+    image: ${REPOSITORY}/${IMAGE}:${TAG}
+    networks:
+      - prox
+      - search-db
+
+  search-db:
+    image: postgres:11.3-alpine
+    volumes:
+      - search-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=search-service
+      - POSTGRES_PASSWORD=search-service
+      - POSTGRES_DB=search-db
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - search-db
+
+volumes:
+  search-db-data:
+
+networks:
+  prox:
+    external: true
+  search-db:

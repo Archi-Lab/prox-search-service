@@ -1,0 +1,55 @@
+node {
+    def revision
+    def changelist
+
+    def repository
+    def image
+    def tag
+
+    def server = 'tcp://10.10.10.42:2376'
+    def certs = 'prox-dev-certs'
+    def tagPrefix = '-dev'
+
+    stage('Checkout') {
+        checkout scm
+
+        def pom = readMavenPom()
+
+        revision = pom.getProperties().getProperty('revision')
+        changelist = tagPrefix + '-' + env.BUILD_NUMBER
+
+        repository = pom.getProperties().getProperty('docker.image.prefix')
+        image = pom.getArtifactId()
+        tag = revision + changelist
+    }
+
+    stage('Build') {
+        docker.image('adoptopenjdk:11.0.5_10-jdk-openj9-0.17.0').inside {
+            writeFile file: 'settings.xml',
+                    text: "<settings><localRepository>${pwd()}/.m2</localRepository></settings>"
+
+            withCredentials([usernamePassword(credentialsId: 'archilab-nexus-jenkins',
+                    usernameVariable: 'NEXUS_USERNAME', passwordVariable: 'NEXUS_PASSWORD')]) {
+                sh "./mvnw -B -s settings.xml \
+                    -Ddockerfile.username=\"$NEXUS_USERNAME\" \
+                    -Ddockerfile.password=\"$NEXUS_PASSWORD\" \
+                    -Dchangelist=${changelist} \
+                    -Dskip.npm \
+                    clean deploy"
+            }
+        }
+    }
+
+    stage('Deploy') {
+        docker.withServer(server, certs) {
+            docker.withRegistry('https://docker.nexus.archi-lab.io', 'archilab-nexus-jenkins') {
+                sh "env REPOSITORY=${repository} IMAGE=${image} TAG=${tag} \
+                    docker stack deploy \
+                    --with-registry-auth \
+                    -c src/main/docker/docker-compose.yml \
+                    -c src/main/docker/docker-compose.prod.yml \
+                    ${image}"
+            }
+        }
+    }
+}
