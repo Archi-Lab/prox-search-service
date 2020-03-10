@@ -1,6 +1,7 @@
 package io.archilab.prox.searchservice;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.archilab.prox.searchservice.project.Project;
 import io.archilab.prox.searchservice.project.ProjectDescription;
@@ -15,18 +16,13 @@ import io.archilab.prox.searchservice.project.TagName;
 import io.archilab.prox.searchservice.services.SearchResultService;
 import java.util.List;
 import java.util.UUID;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.util.Pair;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
-// @DataJpaTest
 @SpringBootTest
 public class SearchResultServiceTest {
 
@@ -110,8 +106,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -129,9 +125,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectB.getId().toString(), resultData.get(1).getId());
     }
 
     {
@@ -149,10 +145,10 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
+      assertEquals(2, resultCount);
 
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
 
     {
@@ -169,8 +165,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
     }
   }
 
@@ -222,8 +218,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -239,8 +235,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -256,9 +252,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectB.getId().toString(), resultData.get(1).getId());
     }
 
     {
@@ -274,8 +270,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -291,9 +287,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
 
     {
@@ -309,8 +305,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
     }
   }
 
@@ -353,8 +349,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -369,9 +365,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
   }
 
@@ -414,8 +410,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -430,9 +426,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
   }
 
@@ -476,8 +472,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -494,8 +490,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
   }
 
@@ -538,8 +534,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -554,9 +550,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
   }
 
@@ -599,8 +595,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -615,9 +611,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
   }
 
@@ -660,8 +656,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -676,9 +672,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectA.getId().toString(), resultData.get(1).getId());
     }
   }
 
@@ -720,8 +716,8 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(1, resultCount);
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+      assertEquals(1, resultCount);
+      assertEquals(projectB.getId().toString(), resultData.get(0).getId());
     }
 
     {
@@ -736,9 +732,9 @@ public class SearchResultServiceTest {
       List<ProjectSearchData> resultData = result.getFirst();
       long resultCount = result.getSecond();
 
-      Assert.assertEquals(2, resultCount); // beide ergebnisse haben gleichen score
-      Assert.assertEquals(projectA.getId().toString(), resultData.get(0).getId());
-      Assert.assertEquals(projectB.getId().toString(), resultData.get(1).getId());
+      assertEquals(2, resultCount); // beide ergebnisse haben gleichen score
+      assertEquals(projectA.getId().toString(), resultData.get(0).getId());
+      assertEquals(projectB.getId().toString(), resultData.get(1).getId());
     }
   }
 
@@ -778,12 +774,12 @@ public class SearchResultServiceTest {
     List<ProjectSearchData> resultData = result.getFirst();
     long resultCount = result.getSecond();
 
-    Assert.assertEquals(2, resultCount);
+    assertEquals(2, resultCount);
 
     // Project B: cc in Supervisor and tag
-    Assert.assertEquals(projectB.getId().toString(), resultData.get(0).getId());
+    assertEquals(projectB.getId().toString(), resultData.get(0).getId());
 
     // Project A: cc in Title and short description
-    Assert.assertEquals(projectA.getId().toString(), resultData.get(1).getId());
+    assertEquals(projectA.getId().toString(), resultData.get(1).getId());
   }
 }
