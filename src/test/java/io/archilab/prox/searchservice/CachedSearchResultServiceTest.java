@@ -1,5 +1,7 @@
 package io.archilab.prox.searchservice;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.archilab.prox.searchservice.project.Project;
 import io.archilab.prox.searchservice.project.ProjectDescription;
 import io.archilab.prox.searchservice.project.ProjectName;
@@ -11,15 +13,11 @@ import io.archilab.prox.searchservice.project.SupervisorName;
 import io.archilab.prox.searchservice.project.TagName;
 import io.archilab.prox.searchservice.services.CachedSearchResultService;
 import java.util.UUID;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @DataJpaTest
 public class CachedSearchResultServiceTest {
 
@@ -87,25 +85,25 @@ public class CachedSearchResultServiceTest {
 
     // "Architektur" => B
     var architekturProjects = searchService.getProjects("Architektur");
-    Assert.assertEquals(1, architekturProjects.size());
-    Assert.assertEquals(projectB.getId(), architekturProjects.get(0).getId());
+    assertEquals(1, architekturProjects.size());
+    assertEquals(projectB.getId(), architekturProjects.get(0).getId());
 
     // "Predictive-Maintenance" => A, B
     var predMaintainanceProjects = searchService.getProjects("Predictive-Maintenance");
-    Assert.assertEquals(2, predMaintainanceProjects.size());
-    Assert.assertEquals(projectB.getId(), predMaintainanceProjects.get(0).getId());
-    Assert.assertEquals(projectA.getId(), predMaintainanceProjects.get(1).getId());
+    assertEquals(2, predMaintainanceProjects.size());
+    assertEquals(projectB.getId(), predMaintainanceProjects.get(0).getId());
+    assertEquals(projectA.getId(), predMaintainanceProjects.get(1).getId());
 
     // "Maintenance" => B, A
     var maintainanceProjects = searchService.getProjects("Maintenance");
-    Assert.assertEquals(2, maintainanceProjects.size());
-    Assert.assertEquals(projectB.getId(), maintainanceProjects.get(0).getId());
-    Assert.assertEquals(projectA.getId(), maintainanceProjects.get(1).getId());
+    assertEquals(2, maintainanceProjects.size());
+    assertEquals(projectB.getId(), maintainanceProjects.get(0).getId());
+    assertEquals(projectA.getId(), maintainanceProjects.get(1).getId());
 
     // Betreuer = Pyschny => A
     var pyschnyProjects = searchService.getProjects("Betreuer = Pyschny");
-    Assert.assertEquals(1, pyschnyProjects.size());
-    Assert.assertEquals(projectA.getId(), pyschnyProjects.get(0).getId());
+    assertEquals(1, pyschnyProjects.size());
+    assertEquals(projectA.getId(), pyschnyProjects.get(0).getId());
   }
 
   @Test
@@ -144,36 +142,36 @@ public class CachedSearchResultServiceTest {
 
     // Beschreibung = "Architektur" => B
     var architekturProjects = searchService.getProjects("Beschreibung = \"Architektur\"");
-    Assert.assertEquals(1, architekturProjects.size());
-    Assert.assertEquals(projectB.getId(), architekturProjects.get(0).getId());
+    assertEquals(1, architekturProjects.size());
+    assertEquals(projectB.getId(), architekturProjects.get(0).getId());
 
     // Beschreibung = "Predictive-Maintenance" => A
     var predMaintainanceProjects =
         searchService.getProjects("Beschreibung=\"Predictive-Maintenance\"");
-    Assert.assertEquals(1, predMaintainanceProjects.size());
-    Assert.assertEquals(projectA.getId(), predMaintainanceProjects.get(0).getId());
+    assertEquals(1, predMaintainanceProjects.size());
+    assertEquals(projectA.getId(), predMaintainanceProjects.get(0).getId());
 
     // Beschreibung = "Maintenance" => A, B
     var maintainanceProjects = searchService.getProjects("Beschreibung = \"Maintenance\"");
-    Assert.assertEquals(2, maintainanceProjects.size());
-    Assert.assertEquals(projectA.getId(), maintainanceProjects.get(0).getId());
-    Assert.assertEquals(projectB.getId(), maintainanceProjects.get(1).getId());
+    assertEquals(2, maintainanceProjects.size());
+    assertEquals(projectA.getId(), maintainanceProjects.get(0).getId());
+    assertEquals(projectB.getId(), maintainanceProjects.get(1).getId());
 
     // Tag = "Predictive Maintenance" => A
     var tagPredMainProjects = searchService.getProjects("Tag = \"Predictive Maintenance\"");
-    Assert.assertEquals(1, tagPredMainProjects.size());
-    Assert.assertEquals(projectA.getId(), tagPredMainProjects.get(0).getId());
+    assertEquals(1, tagPredMainProjects.size());
+    assertEquals(projectA.getId(), tagPredMainProjects.get(0).getId());
 
     // Tag = "Maintenance" => A, B
     var tagMainProjects = searchService.getProjects("Tag = \"Maintenance\"");
-    Assert.assertEquals(2, tagMainProjects.size());
-    Assert.assertEquals(projectA.getId(), tagMainProjects.get(0).getId());
-    Assert.assertEquals(projectB.getId(), tagMainProjects.get(1).getId());
+    assertEquals(2, tagMainProjects.size());
+    assertEquals(projectA.getId(), tagMainProjects.get(0).getId());
+    assertEquals(projectB.getId(), tagMainProjects.get(1).getId());
 
     // Betreuer = "Pyschny" => A
     var pyschnyProjects = searchService.getProjects("Betreuer = \"Pyschny\"");
-    Assert.assertEquals(1, pyschnyProjects.size());
-    Assert.assertEquals(projectA.getId(), pyschnyProjects.get(0).getId());
+    assertEquals(1, pyschnyProjects.size());
+    assertEquals(projectA.getId(), pyschnyProjects.get(0).getId());
   }
 
   @Test
@@ -203,13 +201,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.title", "Titel");
 
     var filterResult = searchService.getProjects(key + "='Project-B'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("Project BB");
-    Assert.assertEquals(2, weightResult.size());
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    assertEquals(2, weightResult.size());
+    assertEquals(projectB.getId(), weightResult.get(0).getId());
+    assertEquals(projectA.getId(), weightResult.get(1).getId());
   }
 
   @Test
@@ -239,13 +237,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.supervisor", "Betreuer");
 
     var filterResult = searchService.getProjects(key + "='Super B'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("Super BB");
-    Assert.assertEquals(2, weightResult.size());
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    assertEquals(2, weightResult.size());
+    assertEquals(projectB.getId(), weightResult.get(0).getId());
+    assertEquals(projectA.getId(), weightResult.get(1).getId());
   }
 
   @Test
@@ -275,13 +273,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.status", "Status");
 
     var filterResult = searchService.getProjects(key + "='" + ProjectStatus.VERFÜGBAR.name() + "'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectA.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectA.getId(), filterResult.get(0).getId());
 
     var finishedResult =
         searchService.getProjects(key + "='" + ProjectStatus.ABGESCHLOSSEN.name() + "'");
-    Assert.assertEquals(1, finishedResult.size());
-    Assert.assertEquals(projectB.getId(), finishedResult.get(0).getId());
+    assertEquals(1, finishedResult.size());
+    assertEquals(projectB.getId(), finishedResult.get(0).getId());
   }
 
   @Test
@@ -311,13 +309,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.requirement", "Voraussetzung");
 
     var filterResult = searchService.getProjects(key + "='Requirement B'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("Requirement BB");
-    Assert.assertEquals(2, weightResult.size());
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    assertEquals(2, weightResult.size());
+    assertEquals(projectB.getId(), weightResult.get(0).getId());
+    assertEquals(projectA.getId(), weightResult.get(1).getId());
   }
 
   @Test
@@ -347,13 +345,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.description", "Beschreibung");
 
     var filterResult = searchService.getProjects(key + "='Desc B'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("Desc BB");
-    Assert.assertEquals(2, weightResult.size());
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    assertEquals(2, weightResult.size());
+    assertEquals(projectB.getId(), weightResult.get(0).getId());
+    assertEquals(projectA.getId(), weightResult.get(1).getId());
   }
 
   @Test
@@ -383,13 +381,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.shortDescription", "Kurzbeschreibung");
 
     var filterResult = searchService.getProjects(key + "='ShortDesc BB'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("ShortDesc BB");
-    Assert.assertEquals(2, weightResult.size());
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    assertEquals(2, weightResult.size());
+    assertEquals(projectB.getId(), weightResult.get(0).getId());
+    assertEquals(projectA.getId(), weightResult.get(1).getId());
   }
 
   @Test
@@ -419,13 +417,13 @@ public class CachedSearchResultServiceTest {
     String key = this.environment.getProperty("searchNames.tag", "Tag");
 
     var filterResult = searchService.getProjects(key + "='tag b'");
-    Assert.assertEquals(1, filterResult.size());
-    Assert.assertEquals(projectB.getId(), filterResult.get(0).getId());
+    assertEquals(1, filterResult.size());
+    assertEquals(projectB.getId(), filterResult.get(0).getId());
 
     var weightResult = searchService.getProjects("tag b");
-    Assert.assertEquals(2, weightResult.size()); // gleichwertig result
-    Assert.assertEquals(projectA.getId(), weightResult.get(0).getId());
-    Assert.assertEquals(projectB.getId(), weightResult.get(1).getId());
+    assertEquals(2, weightResult.size()); // gleichwertig result
+    assertEquals(projectA.getId(), weightResult.get(0).getId());
+    assertEquals(projectB.getId(), weightResult.get(1).getId());
   }
 
   @Test
@@ -453,12 +451,12 @@ public class CachedSearchResultServiceTest {
     var searchService = new CachedSearchResultService(this.projectRepository, this.environment);
 
     var weightResult = searchService.getProjects("cC");
-    Assert.assertEquals(2, weightResult.size());
+    assertEquals(2, weightResult.size());
 
     // Project B: cc in Supervisor and tag
-    Assert.assertEquals(projectB.getId(), weightResult.get(0).getId());
+    assertEquals(projectB.getId(), weightResult.get(0).getId());
 
     // Project A: cc in Title and short description
-    Assert.assertEquals(projectA.getId(), weightResult.get(1).getId());
+    assertEquals(projectA.getId(), weightResult.get(1).getId());
   }
 }
